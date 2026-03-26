@@ -33,8 +33,8 @@ export function TaskCard({ task, onAccept }: TaskCardProps) {
       });
       
       if (onAccept) onAccept();
-    } catch (error: any) {
-      toast.error('Failed to accept task', { description: error.message });
+    } catch (error) {
+      toast.error('Failed to accept task', { description: (error as Error).message });
     }
   };
 

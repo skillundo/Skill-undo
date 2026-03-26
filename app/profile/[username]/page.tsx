@@ -13,6 +13,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
   
   const { user, isLoaded } = useUser();
   const { signOut } = useClerk();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [profile, setProfile] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -25,7 +26,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
 
   useEffect(() => {
     const fetchProfile = async () => {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('profiles')
         .select('*')
         .ilike('username', decodedUsername)

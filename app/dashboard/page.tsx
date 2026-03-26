@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { supabase, type Task } from '@/lib/supabase';
 import { TaskCard } from '@/components/TaskCard';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Edit2 } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
 
 const CATEGORIES = ['All', 'Digital Artist', 'Content Writing', 'UI/UX Design', 'Full-Stack Dev', 'Video Editing'];

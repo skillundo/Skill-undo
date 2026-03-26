@@ -14,7 +14,7 @@ export function OnboardingModal() {
   useEffect(() => {
     if (isLoaded && isSignedIn && user) {
       const checkProfile = async () => {
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from('profiles')
           .select('id')
           .eq('id', user.id)
