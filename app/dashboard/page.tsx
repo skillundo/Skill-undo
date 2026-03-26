@@ -1,16 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { supabase, type Task } from '@/lib/supabase';
 import { TaskCard } from '@/components/TaskCard';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useUser } from '@clerk/nextjs';
 
 const CATEGORIES = ['All', 'Digital Artist', 'Content Writing', 'UI/UX Design', 'Full-Stack Dev', 'Video Editing'];
 
 export default function DashboardFeed() {
-  const { user, isLoaded, isSignedIn } = useUser();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [activeCategory, setActiveCategory] = useState('All');
   const [isLoading, setIsLoading] = useState(true);
