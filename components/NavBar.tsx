@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Search } from 'lucide-react';
 import { useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { useUser, UserButton } from '@clerk/nextjs';
+import { useUser } from '@clerk/nextjs';
 
 export function NavBar() {
   const pathname = usePathname();
@@ -45,20 +45,25 @@ export function NavBar() {
           />
       </div>
       {/* RIGHT: Navigation & Avatar */}
-      <div className="flex items-center justify-end gap-3 md:gap-4 shrink-0 pr-1">
-        <Link 
-          href="/dashboard" 
-          className={`text-sm font-medium transition-colors hidden md:block ${pathname === '/dashboard' ? 'text-neon-cyan' : 'text-gray-300 hover:text-white'}`}
-        >
-           Dashboard
-        </Link>
-        <div className="flex items-center justify-center min-w-[32px] h-[32px]">
-           {isLoaded && isSignedIn && user ? (
-              <UserButton appearance={{ elements: { userButtonAvatarBox: "border border-neon-cyan drop-shadow-[0_0_8px_rgba(6,182,212,0.5)] w-10 h-10" } }} />
-           ) : (
+      <div className="flex items-center justify-end shrink-0 pr-1">
+         {isLoaded && isSignedIn && user ? (
+            <Link 
+              href="/profile/me?edit=true" 
+              className="flex items-center gap-3 bg-[#020617]/80 hover:bg-neon-cyan/10 border border-white/10 hover:border-neon-cyan/50 p-1.5 pr-5 rounded-full shadow-[0_0_20px_rgba(6,182,212,0.15)] hover:shadow-[0_0_25px_rgba(6,182,212,0.4)] transition-all glass-panel"
+            >
+              <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-neon-cyan/50 shrink-0">
+                <img src={user.imageUrl} alt="Profile" className="w-full h-full object-cover" />
+              </div>
+              <div className="flex flex-col text-left">
+                <span className="text-[9px] text-neon-cyan font-bold uppercase tracking-widest leading-none mb-0.5">Edit mode</span>
+                <span className="text-xs font-extrabold text-white leading-none">Your Profile</span>
+              </div>
+            </Link>
+         ) : (
+            <div className="flex items-center min-h-[32px]">
               <Link href="/sign-in" className="text-sm font-bold text-black hover:text-white transition-colors bg-neon-cyan px-5 py-2 rounded-full shadow-[0_0_15px_rgba(6,182,212,0.4)]">Sign In</Link>
-           )}
-        </div>
+            </div>
+         )}
       </div>
     </div>
   );

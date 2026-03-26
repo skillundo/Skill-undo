@@ -59,24 +59,7 @@ export default function DashboardFeed() {
   return (
     <div className="flex flex-col gap-8 w-full animate-fade-in relative mt-4 md:mt-0">
       <div className="flex flex-col gap-4 items-center text-center mt-8 mb-4 relative w-full max-w-5xl mx-auto px-4">
-        
-        {/* Dynamic Avatar Edit Profile Button */}
-        {isLoaded && isSignedIn && user && (
-          <div className="w-full flex justify-end md:absolute md:right-4 md:top-0 mb-6 md:mb-0 z-10">
-             <Link 
-                href="/profile/me?edit=true" 
-                className="flex items-center gap-3 bg-[#020617]/80 hover:bg-neon-cyan/10 border border-white/10 hover:border-neon-cyan/50 p-1.5 pr-6 rounded-full shadow-[0_0_20px_rgba(6,182,212,0.15)] hover:shadow-[0_0_25px_rgba(6,182,212,0.4)] transition-all glass-panel"
-             >
-               <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-neon-cyan/50 shrink-0">
-                 <img src={user.imageUrl} alt="Profile" className="w-full h-full object-cover" />
-               </div>
-               <div className="flex flex-col text-left">
-                 <span className="text-[10px] text-neon-cyan font-bold uppercase tracking-widest leading-none mb-0.5">Edit mode</span>
-                 <span className="text-sm font-extrabold text-white leading-none">Your Profile</span>
-               </div>
-             </Link>
-          </div>
-        )}
+        {/* Dashboard Header Text */}
 
         <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-white mt-4 md:mt-2">
           Creator <span className="text-neon-cyan drop-shadow-[0_0_15px_rgba(6,182,212,0.8)]">Dashboard.</span>
