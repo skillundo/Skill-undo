@@ -191,13 +191,13 @@ export default function ProfilePage({ params }: { params: { username: string } }
       <motion.div 
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="w-full max-w-4xl glass-panel bg-[#020617]/50 backdrop-blur-xl p-8 md:p-12 border border-white/10 hover:border-neon-cyan/50 hover:shadow-[0_0_40px_rgba(6,182,212,0.2)] transition-all duration-500 relative overflow-hidden group"
+        className="w-full max-w-4xl glass-panel bg-[#020617]/50 backdrop-blur-xl p-6 md:p-12 border border-white/10 hover:border-neon-cyan/50 hover:shadow-[0_0_40px_rgba(6,182,212,0.2)] transition-all duration-500 relative overflow-hidden group"
       >
         <div className="absolute top-0 right-0 w-64 h-64 bg-neon-cyan/5 blur-[100px] rounded-full pointer-events-none group-hover:bg-neon-cyan/20 transition-colors duration-500" />
         
         {/* Action Buttons Top Right */}
         {isOwner && !isEditing && (
-          <div className="absolute top-6 right-6 flex items-center gap-3 z-20">
+          <div className="absolute top-4 right-4 md:top-6 md:right-6 flex items-center gap-2 md:gap-3 z-20">
             <button 
               onClick={() => signOut({ redirectUrl: '/' })}
               className="flex items-center justify-center p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-neon-violet/20 hover:border-neon-violet/50 hover:text-neon-violet text-gray-400 transition-all shadow-[0_0_15px_rgba(0,0,0,0.5)]"
@@ -215,12 +215,12 @@ export default function ProfilePage({ params }: { params: { username: string } }
           </div>
         )}
 
-        <div className="flex flex-col md:flex-row gap-8 items-center md:items-start relative z-10 w-full mt-10 md:mt-4">
-          <div className="relative w-32 h-32 rounded-full border-2 border-neon-cyan/50 shadow-[0_0_20px_rgba(6,182,212,0.5)] bg-[#0f172a] flex items-center justify-center overflow-hidden flex-shrink-0 animate-float group/avatar">
+        <div className="flex flex-col md:flex-row gap-8 items-center md:items-start relative z-10 w-full mt-12 md:mt-4">
+          <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-full border-2 border-neon-cyan/50 shadow-[0_0_20px_rgba(6,182,212,0.5)] bg-[#0f172a] flex items-center justify-center overflow-hidden flex-shrink-0 animate-float group/avatar">
              {profile.avatar_url || (isOwner && user?.imageUrl) ? (
                <img src={profile.avatar_url || user?.imageUrl} alt="Profile Avatar" className="w-full h-full object-cover" />
              ) : (
-               <div className="text-5xl text-neon-cyan font-bold">{profile.username.charAt(0).toUpperCase()}</div>
+               <div className="text-4xl md:text-5xl text-neon-cyan font-bold">{profile.username.charAt(0).toUpperCase()}</div>
              )}
              
              {/* Upload Overlay */}
@@ -261,10 +261,10 @@ export default function ProfilePage({ params }: { params: { username: string } }
                    <p className="text-neon-cyan font-semibold text-lg drop-shadow-[0_0_5px_rgba(6,182,212,0.5)]">@{profile.username} (Immutable)</p>
                  </div>
               ) : (
-                <div>
-                  <h1 className="text-3xl md:text-5xl font-extrabold text-white tracking-tight">{displayName}</h1>
+                <div className="flex flex-col items-center md:items-start w-full">
+                  <h1 className="text-2xl md:text-5xl font-extrabold text-white tracking-tight text-center md:text-left">{displayName}</h1>
                   {!profile.is_anonymous && (
-                    <div className="flex flex-col mt-2">
+                    <div className="flex flex-col mt-2 items-center md:items-start w-full">
                        <p className="text-neon-cyan font-semibold text-lg tracking-wide drop-shadow-[0_0_5px_rgba(6,182,212,0.5)]">@{profile.username}</p>
                        {isOwner && user?.primaryEmailAddress && (
                          <p className="text-gray-400 text-sm mt-1">{user.primaryEmailAddress.emailAddress}</p>
@@ -437,7 +437,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 20 }}
-              className="bg-[#0f172a] border border-white/10 rounded-2xl p-8 max-w-md w-full shadow-[0_0_50px_rgba(6,182,212,0.15)] relative"
+              className="bg-[#0f172a] border border-white/10 rounded-2xl p-6 md:p-8 max-w-md w-full shadow-[0_0_50px_rgba(6,182,212,0.15)] relative"
             >
               <button 
                 onClick={() => setShowPortfolioModal(false)}

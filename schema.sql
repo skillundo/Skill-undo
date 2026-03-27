@@ -43,3 +43,18 @@ CREATE TABLE IF NOT EXISTS public.portfolio_items (
 ALTER TABLE public.profiles DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tasks DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.portfolio_items DISABLE ROW LEVEL SECURITY;
+
+-- 4. Storage Bucket setup for Avatars (Must be run as Superuser/Service Role)
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('avatars', 'avatars', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Policies for storage bucket (disabling strict auth for public demo usage)
+DROP POLICY IF EXISTS "Public Access" ON storage.objects;
+CREATE POLICY "Public Access" ON storage.objects FOR SELECT USING ( bucket_id = 'avatars' );
+
+DROP POLICY IF EXISTS "Insert access for all users" ON storage.objects;
+CREATE POLICY "Insert access for all users" ON storage.objects FOR INSERT WITH CHECK ( bucket_id = 'avatars' );
+
+DROP POLICY IF EXISTS "Update access for all users" ON storage.objects;
+CREATE POLICY "Update access for all users" ON storage.objects FOR UPDATE USING ( bucket_id = 'avatars' );
