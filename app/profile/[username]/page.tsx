@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Sparkles, Image as ImageIcon, Briefcase, MapPin, Edit2, X, Check, LogOut, Upload, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUser, useClerk } from '@clerk/nextjs';
-import { supabase, type PortfolioItem } from '@/lib/supabase';
+import { supabase, type PortfolioItem, type Profile } from '@/lib/supabase';
 import { toast } from 'sonner';
 
 export default function ProfilePage({ params }: { params: { username: string } }) {
@@ -13,8 +13,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
   
   const { user, isLoaded } = useUser();
   const { signOut } = useClerk();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([]);
   
@@ -113,7 +112,8 @@ export default function ProfilePage({ params }: { params: { username: string } }
     }
   };
 
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleAvatarUpload = async (e: any) => {
     try {
       if (!e.target.files || e.target.files.length === 0) return;
       const file = e.target.files[0];
@@ -146,8 +146,8 @@ export default function ProfilePage({ params }: { params: { username: string } }
       setProfile({ ...profile, avatar_url: publicUrl });
       toast.success('Avatar visibly upgraded!', { style: { boxShadow: '0 0 20px rgba(6, 182, 212, 0.4)' }});
       
-    } catch (error: any) {
-      toast.error('Failed to upload image', { description: error.message });
+    } catch (error: unknown) {
+      toast.error('Failed to upload image', { description: error instanceof Error ? error.message : 'Unknown error' });
     } finally {
       setIsSaving(false);
     }
