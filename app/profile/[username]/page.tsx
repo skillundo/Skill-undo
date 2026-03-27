@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Sparkles, Image as ImageIcon, Briefcase, MapPin, Edit2, X, Check, LogOut } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
+import { Sparkles, Image as ImageIcon, Briefcase, MapPin, Edit2, X, Check, LogOut, Upload, Plus } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useUser, useClerk } from '@clerk/nextjs';
-import { supabase } from '@/lib/supabase';
+import { supabase, type PortfolioItem } from '@/lib/supabase';
 import { toast } from 'sonner';
 
 export default function ProfilePage({ params }: { params: { username: string } }) {
@@ -16,6 +16,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [profile, setProfile] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([]);
   
   // Edit State
   const [isEditing, setIsEditing] = useState(false);
@@ -24,8 +25,12 @@ export default function ProfilePage({ params }: { params: { username: string } }
   const [editAnonymous, setEditAnonymous] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Portfolio Modal State
+  const [showPortfolioModal, setShowPortfolioModal] = useState(false);
+  const [newProject, setNewProject] = useState({ title: '', description: '', demo_url: '' });
+
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchProfileData = async () => {
       const { data } = await supabase
         .from('profiles')
         .select('*')
@@ -37,11 +42,22 @@ export default function ProfilePage({ params }: { params: { username: string } }
         setEditName(data.full_name || '');
         setEditSkills((data.skills || []).join(', '));
         setEditAnonymous(data.is_anonymous || false);
+
+        // Fetch Portfolio
+        const { data: portfolioData } = await supabase
+          .from('portfolio_items')
+          .select('*')
+          .eq('profile_id', data.id)
+          .order('created_at', { ascending: false });
+          
+        if (portfolioData) {
+          setPortfolioItems(portfolioData);
+        }
       }
       setIsLoading(false);
     };
 
-    fetchProfile();
+    fetchProfileData();
   }, [decodedUsername]);
 
   // Deep-link into Edit Mode
@@ -97,10 +113,79 @@ export default function ProfilePage({ params }: { params: { username: string } }
     }
   };
 
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      if (!e.target.files || e.target.files.length === 0) return;
+      const file = e.target.files[0];
+      
+      setIsSaving(true);
+      
+      // Upload to Supabase Storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${profile.id}/avatar.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      // Update Database
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', profile.id);
+
+      if (updateError) throw updateError;
+      
+      setProfile({ ...profile, avatar_url: publicUrl });
+      toast.success('Avatar visibly upgraded!', { style: { boxShadow: '0 0 20px rgba(6, 182, 212, 0.4)' }});
+      
+    } catch (error: any) {
+      toast.error('Failed to upload image', { description: error.message });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSavePortfolio = async () => {
+    if (!newProject.title) {
+      toast.error('Gotta name your masterpiece!');
+      return;
+    }
+    
+    setIsSaving(true);
+    const { data, error } = await supabase
+      .from('portfolio_items')
+      .insert([{
+        profile_id: profile.id,
+        title: newProject.title,
+        description: newProject.description,
+        demo_url: newProject.demo_url
+      }])
+      .select();
+
+    setIsSaving(false);
+
+    if (error) {
+      toast.error('Failed to add project', { description: error.message });
+    } else if (data) {
+      setPortfolioItems([data[0], ...portfolioItems]);
+      setShowPortfolioModal(false);
+      setNewProject({ title: '', description: '', demo_url: '' });
+      toast.success('Project added to your legend!', { style: { boxShadow: '0 0 20px rgba(6, 182, 212, 0.4)' }});
+    }
+  };
+
   const displayName = profile.is_anonymous ? `@${profile.username}` : (profile.full_name || `@${profile.username}`);
 
   return (
-    <div className="flex flex-col items-center gap-12 mt-12 animate-fade-in pb-20 px-4 md:px-0">
+    <div className="flex flex-col items-center gap-12 mt-12 animate-fade-in pb-20 px-4 md:px-0 relative">
       
       {/* Glass Showcase Card */}
       <motion.div 
@@ -131,11 +216,32 @@ export default function ProfilePage({ params }: { params: { username: string } }
         )}
 
         <div className="flex flex-col md:flex-row gap-8 items-center md:items-start relative z-10 w-full mt-10 md:mt-4">
-          <div className="w-32 h-32 rounded-full border-2 border-neon-cyan/50 shadow-[0_0_20px_rgba(6,182,212,0.5)] bg-[#0f172a] flex items-center justify-center overflow-hidden flex-shrink-0 animate-float">
-             {isOwner && user?.imageUrl ? (
-               <img src={user.imageUrl} alt="Profile Avatar" className="w-full h-full object-cover" />
+          <div className="relative w-32 h-32 rounded-full border-2 border-neon-cyan/50 shadow-[0_0_20px_rgba(6,182,212,0.5)] bg-[#0f172a] flex items-center justify-center overflow-hidden flex-shrink-0 animate-float group/avatar">
+             {profile.avatar_url || (isOwner && user?.imageUrl) ? (
+               <img src={profile.avatar_url || user?.imageUrl} alt="Profile Avatar" className="w-full h-full object-cover" />
              ) : (
                <div className="text-5xl text-neon-cyan font-bold">{profile.username.charAt(0).toUpperCase()}</div>
+             )}
+             
+             {/* Upload Overlay */}
+             {(isEditing || isOwner) && (
+               <label className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity cursor-pointer z-10">
+                 {isSaving ? (
+                   <div className="w-6 h-6 border-2 border-t-neon-cyan rounded-full animate-spin" />
+                 ) : (
+                   <>
+                     <Upload className="w-6 h-6 text-white mb-1" />
+                     <span className="text-[10px] font-bold text-white tracking-wider">EDIT IMAGE</span>
+                   </>
+                 )}
+                 <input 
+                   type="file" 
+                   accept="image/*" 
+                   className="hidden" 
+                   onChange={handleAvatarUpload}
+                   disabled={isSaving}
+                 />
+               </label>
              )}
           </div>
           
@@ -187,6 +293,24 @@ export default function ProfilePage({ params }: { params: { username: string } }
                    rows={2}
                    placeholder="React, Figma, Next.js..."
                  />
+                 
+                 <div className="mt-6 pt-6 border-t border-white/10 flex flex-col gap-4">
+                   <div className="flex items-center justify-between">
+                     <label className="text-sm text-gray-400 font-bold tracking-wider">MY PORTFOLIO & EXPERIENCE</label>
+                     <button
+                       onClick={() => setShowPortfolioModal(true)}
+                       className="flex items-center gap-1.5 bg-neon-cyan/10 hover:bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/50 px-3 py-1.5 rounded-lg text-sm font-bold transition-all"
+                     >
+                       <Plus className="w-4 h-4" />
+                       Add New Project
+                     </button>
+                   </div>
+                   {portfolioItems.length > 0 ? (
+                     <p className="text-xs text-gray-500 italic">You have {portfolioItems.length} projects linked to your profile.</p>
+                   ) : (
+                     <p className="text-xs text-gray-500 italic">No projects added yet.</p>
+                   )}
+                 </div>
                </div>
             ) : (
               <div className="flex flex-wrap gap-2 mt-4 justify-center md:justify-start min-h-[30px]">
@@ -205,7 +329,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
                {!isEditing && (
                  <div className="flex flex-wrap justify-center md:justify-start items-center gap-6 text-sm text-gray-400 font-medium w-full">
                     <div className="flex items-center"><MapPin className="w-4 h-4 mr-1.5 text-neon-cyan drop-shadow-[0_0_5px_rgba(6,182,212,0.5)]"/> Creative Hub</div>
-                    <div className="flex items-center"><Briefcase className="w-4 h-4 mr-1.5 text-neon-violet drop-shadow-[0_0_5px_rgba(139,92,246,0.5)]"/> 24 Gigs Completed</div>
+                    <div className="flex items-center"><Briefcase className="w-4 h-4 mr-1.5 text-neon-violet drop-shadow-[0_0_5px_rgba(139,92,246,0.5)]"/> {portfolioItems.length} Projects Showcase</div>
                  </div>
                )}
 
@@ -264,22 +388,112 @@ export default function ProfilePage({ params }: { params: { username: string } }
           <ImageIcon className="text-neon-violet drop-shadow-[0_0_5px_rgba(139,92,246,0.6)]" />
           Featured Work
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1,2,3].map((item) => (
-             <motion.div 
-                key={item} 
-                whileHover={{ y: -8 }}
-                className="glass-panel aspect-video rounded-xl bg-white/5 border border-white/5 hover:border-neon-cyan/50 hover:shadow-[0_0_30px_rgba(6,182,212,0.3)] transition-all duration-300 overflow-hidden relative group cursor-pointer flex flex-col items-center justify-center"
-             >
-               <ImageIcon className="w-12 h-12 text-white/20 group-hover:text-neon-cyan/50 transition-colors duration-300" />
-               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#020617]/90 p-5 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                  <p className="text-sm font-bold text-white">Project Case Study {item}</p>
-                  <p className="text-xs text-neon-cyan mt-1 font-medium">View details &gt;</p>
-               </div>
-             </motion.div>
-          ))}
-        </div>
+        {portfolioItems.length === 0 ? (
+          <div className="text-gray-500 italic w-full text-center py-10 glass-panel border border-white/5">
+            No epic feats recorded yet.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <AnimatePresence>
+              {portfolioItems.map((item) => (
+                 <motion.div 
+                    layout
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    key={item.id} 
+                    whileHover={{ y: -8 }}
+                    className="glass-panel aspect-video rounded-xl bg-white/5 border border-white/5 hover:border-neon-cyan/50 hover:shadow-[0_0_30px_rgba(6,182,212,0.3)] transition-all duration-300 overflow-hidden relative group cursor-pointer flex flex-col items-center justify-center"
+                 >
+                   <ImageIcon className="w-12 h-12 text-white/20 group-hover:text-neon-cyan/50 transition-colors duration-300" />
+                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#020617]/90 p-5 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                      <p className="text-sm font-bold text-white truncate">{item.title}</p>
+                      {item.description && <p className="text-xs text-gray-300 truncate mt-1">{item.description}</p>}
+                      {item.demo_url ? (
+                        <a href={item.demo_url} target="_blank" rel="noopener noreferrer" className="text-xs text-neon-cyan mt-2 font-medium inline-block hover:text-white transition-colors">
+                          View details &gt;
+                        </a>
+                      ) : (
+                        <p className="text-xs text-neon-cyan/50 mt-2 font-medium italic">No link provided</p>
+                      )}
+                   </div>
+                 </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
       </div>
+
+      {/* Add Project Modal */}
+      <AnimatePresence>
+        {showPortfolioModal && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md px-4"
+          >
+            <motion.div 
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              className="bg-[#0f172a] border border-white/10 rounded-2xl p-8 max-w-md w-full shadow-[0_0_50px_rgba(6,182,212,0.15)] relative"
+            >
+              <button 
+                onClick={() => setShowPortfolioModal(false)}
+                className="absolute top-4 right-4 p-1 rounded-full text-gray-400 hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <h2 className="text-2xl font-bold text-white mb-6">Add New Project</h2>
+              
+              <div className="flex flex-col gap-4">
+                <div>
+                  <label className="text-xs text-gray-400 font-bold tracking-wider mb-2 block">PROJECT TITLE *</label>
+                  <input
+                    type="text"
+                    value={newProject.title}
+                    onChange={(e) => setNewProject({ ...newProject, title: e.target.value })}
+                    className="w-full bg-black/40 border border-white/20 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
+                    placeholder="e.g. CampusGigs Redesign"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400 font-bold tracking-wider mb-2 block">SHORT DESCRIPTION</label>
+                  <textarea
+                    value={newProject.description}
+                    onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
+                    className="w-full bg-black/40 border border-white/20 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
+                    rows={3}
+                    placeholder="Briefly describe what you built..."
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400 font-bold tracking-wider mb-2 block">DEMO LINK (OPTIONAL)</label>
+                  <input
+                    type="url"
+                    value={newProject.demo_url}
+                    onChange={(e) => setNewProject({ ...newProject, demo_url: e.target.value })}
+                    className="w-full bg-black/40 border border-white/20 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
+
+              <div className="mt-8 flex justify-end">
+                <button
+                  onClick={handleSavePortfolio}
+                  disabled={isSaving}
+                  className="bg-neon-cyan hover:bg-white text-black font-extrabold px-6 py-2.5 rounded-xl transition-all shadow-[0_0_15px_rgba(6,182,212,0.4)] disabled:opacity-50 flex items-center gap-2"
+                >
+                  {isSaving ? 'Saving...' : 'Save Project'}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

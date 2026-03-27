@@ -8,6 +8,26 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export type Category = 'Digital Artist' | 'Content Writing' | 'UI/UX Design' | 'Full-Stack Dev' | 'Video Editing';
 
+export type Profile = {
+  id: string;
+  username: string;
+  full_name?: string;
+  is_anonymous: boolean;
+  skills: string[];
+  top_rated: boolean;
+  avatar_url?: string;
+  created_at?: string;
+};
+
+export type PortfolioItem = {
+  id: string;
+  profile_id: string;
+  title: string;
+  description?: string;
+  demo_url?: string;
+  created_at?: string;
+};
+
 export type Task = {
   id: string;
   title: string;

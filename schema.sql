@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   is_anonymous boolean default false,
   skills text[] default '{}',
   top_rated boolean default false,
+  avatar_url text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
@@ -24,6 +25,16 @@ CREATE TABLE IF NOT EXISTS public.tasks (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
+-- 3. Portfolio Items Table (Stores user portfolio projects)
+CREATE TABLE IF NOT EXISTS public.portfolio_items (
+  id uuid default gen_random_uuid() primary key,
+  profile_id text references public.profiles(id) on delete cascade not null,
+  title text not null,
+  description text,
+  demo_url text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
 -- NOTE: Since we are using Clerk for authentication (which is a third-party auth provider),
 -- standard Supabase Row Level Security (RLS) policies utilizing `auth.uid()` will block all writes.
 -- For local development and to get the app running instantly, we are disabling RLS on these tables.
@@ -31,3 +42,4 @@ CREATE TABLE IF NOT EXISTS public.tasks (
 
 ALTER TABLE public.profiles DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.tasks DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.portfolio_items DISABLE ROW LEVEL SECURITY;
