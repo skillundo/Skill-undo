@@ -23,6 +23,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
   const [editSkills, setEditSkills] = useState('');
   const [editAnonymous, setEditAnonymous] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
   // Portfolio Modal State
   const [showPortfolioModal, setShowPortfolioModal] = useState(false);
@@ -118,11 +119,17 @@ export default function ProfilePage({ params }: { params: { username: string } }
       if (!e.target.files || e.target.files.length === 0) return;
       const file = e.target.files[0];
       
-      setIsSaving(true);
+      setIsUploadingAvatar(true);
       
-      // Upload to Supabase Storage
+      // Bucket Verification
+      const { error: bucketError } = await supabase.storage.getBucket('avatars');
+      if (bucketError) {
+        throw new Error("Bucket 'avatars' not found. Please create it in your Supabase Dashboard.");
+      }
+      
+      // Upload to Supabase Storage with Timestamp Name (Cache-Busting)
       const fileExt = file.name.split('.').pop();
-      const fileName = `${profile.id}/avatar.${fileExt}`;
+      const fileName = `${profile.id}/avatar-${Date.now()}.${fileExt}`;
       
       const { error: uploadError } = await supabase.storage
         .from('avatars')
@@ -147,9 +154,12 @@ export default function ProfilePage({ params }: { params: { username: string } }
       toast.success('Avatar visibly upgraded!', { style: { boxShadow: '0 0 20px rgba(6, 182, 212, 0.4)' }});
       
     } catch (error: unknown) {
-      toast.error('Failed to upload image', { description: error instanceof Error ? error.message : 'Unknown error' });
+      toast.error('Failed to upload image', { 
+        description: error instanceof Error ? error.message : 'Unknown error',
+        style: { boxShadow: '0 0 20px rgba(219, 39, 119, 0.4)' }
+      });
     } finally {
-      setIsSaving(false);
+      setIsUploadingAvatar(false);
     }
   };
 
@@ -216,7 +226,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
         )}
 
         <div className="flex flex-col md:flex-row gap-8 items-center md:items-start relative z-10 w-full mt-12 md:mt-4">
-          <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-full border-2 border-neon-cyan/50 shadow-[0_0_20px_rgba(6,182,212,0.5)] bg-[#0f172a] flex items-center justify-center overflow-hidden flex-shrink-0 animate-float group/avatar">
+          <div className={`relative w-24 h-24 md:w-32 md:h-32 rounded-full border-2 ${isUploadingAvatar ? 'animate-pulse border-neon-cyan shadow-[0_0_30px_rgba(6,182,212,0.8)]' : 'border-neon-cyan/50 shadow-[0_0_20px_rgba(6,182,212,0.5)]'} bg-[#0f172a] flex items-center justify-center overflow-hidden flex-shrink-0 animate-float group/avatar`}>
              {profile.avatar_url || (isOwner && user?.imageUrl) ? (
                <img src={profile.avatar_url || user?.imageUrl} alt="Profile Avatar" className="w-full h-full object-cover" />
              ) : (
@@ -226,7 +236,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
              {/* Upload Overlay */}
              {(isEditing || isOwner) && (
                <label className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity cursor-pointer z-10">
-                 {isSaving ? (
+                 {isUploadingAvatar ? (
                    <div className="w-6 h-6 border-2 border-t-neon-cyan rounded-full animate-spin" />
                  ) : (
                    <>
@@ -239,7 +249,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
                    accept="image/*" 
                    className="hidden" 
                    onChange={handleAvatarUpload}
-                   disabled={isSaving}
+                   disabled={isUploadingAvatar}
                  />
                </label>
              )}
