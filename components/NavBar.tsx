@@ -50,10 +50,10 @@ export function NavBar() {
   if (pathname === '/') return null;
 
   return (
-    <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-auto glass-panel px-3 py-2 flex items-center justify-center gap-4 md:gap-8 rounded-full animate-float border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.5)] backdrop-blur-2xl">
+    <div className="fixed top-4 md:top-6 left-1/2 -translate-x-1/2 z-50 w-[94vw] md:w-auto glass-panel px-2 md:px-3 py-1.5 md:py-2 flex items-center justify-between md:justify-center gap-2 md:gap-8 rounded-full animate-float border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.5)] backdrop-blur-2xl">
       {/* LEFT: Logo */}
-      <Link href="/" className="flex items-center gap-2 group shrink-0 pl-3">
-        <span className="font-extrabold text-xl md:text-2xl tracking-tight text-white">
+      <Link href="/" className="flex items-center gap-1 md:gap-2 group shrink-0 pl-1 md:pl-3">
+        <span className="font-extrabold text-lg md:text-2xl tracking-tight text-white">
           Campus<span className="text-neon-cyan drop-shadow-[0_0_10px_rgba(6,182,212,0.8)]">Gigs</span>
         </span>
       </Link>
@@ -89,7 +89,7 @@ export function NavBar() {
                 </button>
                 {/* Dropdown */}
                 {showNotifications && (
-                   <div className="absolute top-full mt-4 right-0 w-72 md:w-80 bg-[#020617]/95 backdrop-blur-3xl border border-neon-cyan/30 rounded-2xl shadow-[0_0_40px_rgba(6,182,212,0.6)] p-4 flex flex-col gap-3 max-h-[80vh] overflow-y-auto z-50">
+                   <div className="absolute top-full mt-4 right-0 md:-right-1/2 translate-x-1/4 md:translate-x-0 w-[85vw] md:w-80 bg-[#020617]/95 backdrop-blur-3xl border border-neon-cyan/30 rounded-2xl shadow-[0_0_40px_rgba(6,182,212,0.6)] p-4 flex flex-col gap-3 max-h-[80vh] overflow-y-auto z-50">
                      <h3 className="text-white font-bold text-xs tracking-widest border-b border-white/10 pb-2">PENDING GIGS</h3>
                      {notifications.length === 0 ? (
                        <p className="text-gray-500 text-xs italic">No immediate signals.</p>
@@ -108,20 +108,20 @@ export function NavBar() {
 
             <Link 
               href="/profile/me?edit=true" 
-              className="flex items-center gap-3 bg-[#020617]/80 hover:bg-neon-cyan/10 border border-white/10 hover:border-neon-cyan/50 p-1.5 pr-4 md:pr-5 rounded-full shadow-[0_0_20px_rgba(6,182,212,0.15)] hover:shadow-[0_0_25px_rgba(6,182,212,0.4)] transition-all glass-panel"
+              className="flex items-center gap-2 md:gap-3 bg-[#020617]/80 hover:bg-neon-cyan/10 border border-white/10 hover:border-neon-cyan/50 p-1 md:p-1.5 pr-3 md:pr-5 rounded-full shadow-[0_0_20px_rgba(6,182,212,0.15)] hover:shadow-[0_0_25px_rgba(6,182,212,0.4)] transition-all glass-panel"
             >
-              <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-neon-cyan/50 shrink-0">
+              <div className="w-7 h-7 md:w-8 md:h-8 rounded-full overflow-hidden border-2 border-neon-cyan/50 shrink-0">
                 <img src={user.imageUrl} alt="Profile" className="w-full h-full object-cover" />
               </div>
               <div className="flex flex-col text-left">
-                <span className="text-[9px] text-neon-cyan font-bold uppercase tracking-widest leading-none mb-0.5">Edit mode</span>
-                <span className="text-xs font-extrabold text-white leading-none">Your Profile</span>
+                <span className="text-[8px] md:text-[9px] text-neon-cyan font-bold uppercase tracking-widest leading-none mb-0.5">Edit mode</span>
+                <span className="text-[10px] md:text-xs font-extrabold text-white leading-none whitespace-nowrap">Your Profile</span>
               </div>
             </Link>
             </>
          ) : (
             <div className="flex items-center min-h-[32px]">
-              <Link href="/sign-in" className="text-sm font-bold text-black hover:text-white transition-colors bg-neon-cyan px-5 py-2 rounded-full shadow-[0_0_15px_rgba(6,182,212,0.4)]">Sign In</Link>
+              <Link href="/sign-in" className="text-xs md:text-sm font-bold text-black hover:text-white transition-colors bg-neon-cyan px-4 md:px-5 py-1.5 md:py-2 rounded-full shadow-[0_0_15px_rgba(6,182,212,0.4)] shrink-0">Sign In</Link>
             </div>
          )}
       </div>
