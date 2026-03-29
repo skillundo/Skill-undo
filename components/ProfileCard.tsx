@@ -5,17 +5,15 @@ import { Sparkles, ArrowRight } from 'lucide-react';
 import type { Profile } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
-import { useState } from 'react';
 import { useUser } from '@clerk/nextjs';
-import { AssignWorkModal } from './AssignWorkModal';
 
 interface ProfileCardProps {
   profile: Profile;
+  onHireClick?: () => void;
 }
 
-export function ProfileCard({ profile }: ProfileCardProps) {
+export function ProfileCard({ profile, onHireClick }: ProfileCardProps) {
   const { user } = useUser();
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const isOwner = user?.id === profile.id;
   const primarySkill = profile.skills && profile.skills.length > 0 ? profile.skills[0] : 'Talent';
 
@@ -83,7 +81,7 @@ export function ProfileCard({ profile }: ProfileCardProps) {
       <div className="mt-auto pt-4 flex items-center justify-between border-t border-white/5">
         {!isOwner && (
           <button 
-            onClick={() => setIsModalOpen(true)}
+            onClick={onHireClick}
             className="group/hire flex items-center gap-2 text-sm font-bold bg-neon-cyan/10 hover:bg-neon-cyan text-neon-cyan hover:text-black border border-neon-cyan/50 px-4 py-2 rounded-full transition-all duration-300 shadow-[0_0_15px_rgba(6,182,212,0.2)] hover:shadow-[0_0_20px_rgba(6,182,212,0.5)]"
           >
             Hire for {primarySkill}
@@ -97,12 +95,6 @@ export function ProfileCard({ profile }: ProfileCardProps) {
           <ArrowRight className="w-4 h-4 text-gray-400 group-hover/btn:text-black transition-colors" />
         </Link>
       </div>
-
-      <AssignWorkModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        creator={profile} 
-      />
     </motion.div>
   );
 }

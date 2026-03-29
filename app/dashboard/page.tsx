@@ -5,6 +5,7 @@ import { supabase, type Profile } from '@/lib/supabase';
 import { ProfileCard } from '@/components/ProfileCard';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUser } from '@clerk/nextjs';
+import { AssignWorkModal } from '@/components/AssignWorkModal';
 
 const CATEGORIES = ['All', 'Digital Artist', 'Content Writing', 'UI/UX Design', 'Full-Stack Dev', 'Video Editing'];
 
@@ -13,6 +14,8 @@ export default function DashboardFeed() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [activeCategory, setActiveCategory] = useState('All');
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedCreator, setSelectedCreator] = useState<Profile | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Initial Fetch & Realtime Subscription
   useEffect(() => {
@@ -115,13 +118,30 @@ export default function DashboardFeed() {
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
                 >
-                  <ProfileCard profile={profile} />
+                  <ProfileCard 
+                    profile={profile} 
+                    onHireClick={() => {
+                      setSelectedCreator(profile);
+                      setIsModalOpen(true);
+                    }} 
+                  />
                 </motion.div>
               ))}
             </AnimatePresence>
           </motion.div>
         )}
       </div>
+
+      {selectedCreator && (
+        <AssignWorkModal 
+          isOpen={isModalOpen} 
+          onClose={() => {
+            setIsModalOpen(false);
+            setTimeout(() => setSelectedCreator(null), 300); // Wait for modal exit animation
+          }} 
+          creator={selectedCreator} 
+        />
+      )}
     </div>
   );
 }
