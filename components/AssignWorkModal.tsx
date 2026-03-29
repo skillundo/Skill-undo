@@ -72,7 +72,7 @@ export function AssignWorkModal({ isOpen, onClose, creator }: AssignWorkModalPro
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="bg-[#020617] border border-neon-cyan/30 rounded-2xl p-6 md:p-8 max-w-md w-full shadow-[0_0_40px_rgba(6,182,212,0.15)] relative overflow-hidden group"
+          className="bg-[#020617] border border-neon-cyan/30 rounded-2xl p-6 md:p-8 max-w-md w-full shadow-[0_0_40px_rgba(6,182,212,0.15)] relative overflow-y-auto max-h-[85vh] scrollbar-hide group shrink-0 my-auto"
           onClick={(e) => e.stopPropagation()} // Prevent bubbling from card wrapper
         >
           <div className="absolute top-0 right-0 w-32 h-32 bg-neon-cyan/10 blur-[50px] rounded-full pointer-events-none" />

@@ -4,10 +4,12 @@ import { useEffect, useState } from 'react';
 import { supabase, type Profile } from '@/lib/supabase';
 import { ProfileCard } from '@/components/ProfileCard';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useUser } from '@clerk/nextjs';
 
 const CATEGORIES = ['All', 'Digital Artist', 'Content Writing', 'UI/UX Design', 'Full-Stack Dev', 'Video Editing'];
 
 export default function DashboardFeed() {
+  const { user } = useUser();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [activeCategory, setActiveCategory] = useState('All');
   const [isLoading, setIsLoading] = useState(true);
@@ -95,7 +97,7 @@ export default function DashboardFeed() {
           <div className="flex justify-center mt-20">
             <div className="w-12 h-12 border-4 border-neon-cyan/20 border-t-neon-cyan rounded-full animate-spin shadow-[0_0_20px_rgba(6,182,212,0.5)]" />
           </div>
-        ) : profiles.length === 0 ? (
+        ) : profiles.filter(p => !user || p.id !== user.id).length === 0 ? (
           <div className="text-center text-gray-500 mt-20 px-4">
             No elite campus talent found for this category. <br className="md:hidden" /> Be a legend and list your skills!
           </div>
@@ -105,7 +107,7 @@ export default function DashboardFeed() {
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
             <AnimatePresence>
-              {profiles.map((profile) => (
+              {profiles.filter(p => !user || p.id !== user.id).map((profile) => (
                 <motion.div
                   key={profile.id}
                   layout
