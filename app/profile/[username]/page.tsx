@@ -121,12 +121,10 @@ export default function ProfilePage({ params }: { params: { username: string } }
       
       setIsUploadingAvatar(true);
       
-      // Bucket Verification
-      const { error: bucketError } = await supabase.storage.getBucket('avatars');
-      if (bucketError) {
-        throw new Error("Bucket 'avatars' not found. Please create it in your Supabase Dashboard.");
-      }
-      
+      // Bucket Verification logic via getBucket() was triggering an RLS permission error 
+      // because standard clients can't read bucket metadata. 
+      // Instead, we will catch a specific "Bucket not found" error during the actual upload attempt.
+
       // Upload to Supabase Storage with Timestamp Name (Cache-Busting)
       const fileExt = file.name.split('.').pop();
       const fileName = `${profile.id}/avatar-${Date.now()}.${fileExt}`;
@@ -135,7 +133,13 @@ export default function ProfilePage({ params }: { params: { username: string } }
         .from('avatars')
         .upload(fileName, file, { upsert: true });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        // Specifically check if it's a bucket missing error
+        if (uploadError.message && uploadError.message.toLowerCase().includes('bucket not found')) {
+           throw new Error("Bucket 'avatars' not found. Please verify it is correctly named and public in Supabase.");
+        }
+        throw uploadError;
+      }
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
