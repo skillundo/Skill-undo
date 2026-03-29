@@ -52,9 +52,22 @@ export function AssignWorkModal({ isOpen, onClose, creator }: AssignWorkModalPro
       toast.success('Signal Sent! Assignment created.', { style: { boxShadow: '0 0 20px rgba(6, 182, 212, 0.4)' }});
       onClose();
       setFormData({ title: '', brief: '', budget: '', deadline: '' });
-    } catch (error: unknown) {
-      toast.error('Failed to send assignment signal', { 
-        description: error instanceof Error ? error.message : 'Unknown error',
+    } catch (err: any) {
+      console.error("Assignment Error:", err);
+      
+      let errorMsg = 'Unknown error occurred.';
+      if (err?.code === '23503') {
+        errorMsg = 'Your account must be fully registered in the database before you can assign gigs. Please edit your profile first!';
+      } else if (err?.message || err?.details) {
+        errorMsg = err.message || err.details;
+      } else if (typeof err === 'string') {
+        errorMsg = err;
+      } else {
+        errorMsg = JSON.stringify(err);
+      }
+
+      toast.error('Signal Intercepted', { 
+        description: errorMsg,
         style: { boxShadow: '0 0 20px rgba(219, 39, 119, 0.4)' }
       });
     } finally {
