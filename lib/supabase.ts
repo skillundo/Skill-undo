@@ -31,10 +31,11 @@ export type PortfolioItem = {
 export type Task = {
   id: string;
   title: string;
+  description?: string;
   budget: number;
   deadline: string;
-  category: Category;
-  status: 'open' | 'assigned' | 'completed';
+  category: string;
+  status: 'open' | 'assigned' | 'completed' | 'pending';
   posted_by?: string;
   assigned_to?: string | null;
   created_at?: string;
