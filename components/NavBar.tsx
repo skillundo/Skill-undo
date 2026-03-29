@@ -50,7 +50,7 @@ export function NavBar() {
   if (pathname === '/') return null;
 
   return (
-    <div className="fixed top-4 md:top-6 left-1/2 -translate-x-1/2 z-50 w-[94vw] md:w-auto glass-panel px-2 md:px-3 py-1.5 md:py-2 flex items-center justify-between md:justify-center gap-2 md:gap-8 rounded-full animate-float border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.5)] backdrop-blur-2xl">
+    <div className="fixed top-4 md:top-6 left-1/2 -translate-x-1/2 z-50 w-[95vw] max-w-[380px] md:max-w-none md:w-auto glass-panel px-2 md:px-3 py-1.5 md:py-2 flex items-center justify-between md:justify-center gap-1 md:gap-8 rounded-[2rem] animate-float border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.5)] backdrop-blur-2xl">
       {/* LEFT: Logo */}
       <Link href="/" className="flex items-center gap-1 md:gap-2 group shrink-0 pl-1 md:pl-3">
         <span className="font-extrabold text-lg md:text-2xl tracking-tight text-white">
