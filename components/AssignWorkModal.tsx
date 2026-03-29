@@ -35,8 +35,7 @@ export function AssignWorkModal({ isOpen, onClose, creator }: AssignWorkModalPro
     try {
       const { error } = await supabase.from('tasks').insert([
         {
-          title: formData.title,
-          description: formData.brief,
+          title: `${formData.title} | Brief: ${formData.brief}`,
           budget: parseFloat(formData.budget),
           deadline: new Date(formData.deadline).toISOString(),
           category: creator.skills && creator.skills.length > 0 ? creator.skills[0] : 'General Freelance',
