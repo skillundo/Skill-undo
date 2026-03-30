@@ -51,9 +51,9 @@ export function NavBar() {
 
   return (
     <div className="fixed top-4 md:top-6 left-0 right-0 z-50 flex justify-center w-full pointer-events-none">
-      <div className="pointer-events-auto w-[95vw] max-w-[380px] md:max-w-none md:w-auto glass-panel px-2 md:px-3 py-1.5 md:py-2 flex items-center justify-between md:justify-center gap-1 md:gap-8 rounded-[2rem] animate-float border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.5)] backdrop-blur-2xl">
+      <div className="pointer-events-auto w-[95vw] max-w-[380px] md:max-w-none md:w-auto glass-panel px-4 py-2 flex items-center justify-center gap-4 md:gap-8 rounded-[2rem] animate-float border border-white/10 shadow-[0_10px_40px_rgba(0,0,0,0.5)] backdrop-blur-2xl">
       {/* LEFT: Logo */}
-      <Link href="/" className="flex items-center gap-1 md:gap-2 group shrink-0 pl-1 md:pl-3">
+      <Link href="/" className="flex items-center gap-1 md:gap-2 group shrink-0">
         <span className="font-extrabold text-lg md:text-2xl tracking-tight text-white">
           Campus<span className="text-neon-cyan drop-shadow-[0_0_10px_rgba(6,182,212,0.8)]">Gigs</span>
         </span>
@@ -74,7 +74,7 @@ export function NavBar() {
           />
       </div>
       {/* RIGHT: Navigation & Avatar */}
-      <div className="flex items-center justify-end shrink-0 pr-1 gap-2 md:gap-4">
+      <div className="flex items-center justify-end shrink-0 gap-2 md:gap-4">
          {isLoaded && isSignedIn && user ? (
             <>
               {/* Notifications Dropdown */}
@@ -108,14 +108,14 @@ export function NavBar() {
               </div>
 
             <Link 
-              href="/profile/me?edit=true" 
+              href="/profile/me" 
               className="flex items-center gap-2 md:gap-3 bg-[#020617]/80 hover:bg-neon-cyan/10 border border-white/10 hover:border-neon-cyan/50 p-1 md:p-1.5 pr-3 md:pr-5 rounded-full shadow-[0_0_20px_rgba(6,182,212,0.15)] hover:shadow-[0_0_25px_rgba(6,182,212,0.4)] transition-all glass-panel"
             >
               <div className="w-7 h-7 md:w-8 md:h-8 rounded-full overflow-hidden border-2 border-neon-cyan/50 shrink-0">
                 <img src={user.imageUrl} alt="Profile" className="w-full h-full object-cover" />
               </div>
               <div className="flex flex-col text-left">
-                <span className="text-[8px] md:text-[9px] text-neon-cyan font-bold uppercase tracking-widest leading-none mb-0.5">Edit mode</span>
+                <span className="text-[8px] md:text-[9px] text-neon-cyan font-bold uppercase tracking-widest leading-none mb-0.5">Creator</span>
                 <span className="text-[10px] md:text-xs font-extrabold text-white leading-none whitespace-nowrap">Your Profile</span>
               </div>
             </Link>
