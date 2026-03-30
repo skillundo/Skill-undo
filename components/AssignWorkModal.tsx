@@ -52,14 +52,16 @@ export function AssignWorkModal({ isOpen, onClose, creator }: AssignWorkModalPro
       toast.success('Signal Sent! Assignment created.', { style: { boxShadow: '0 0 20px rgba(6, 182, 212, 0.4)' }});
       onClose();
       setFormData({ title: '', brief: '', budget: '', deadline: '' });
-    } catch (err: any) {
+    } catch (err) {
       console.error("Assignment Error:", err);
       
       let errorMsg = 'Unknown error occurred.';
-      if (err?.code === '23503') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const errorObj = err as any;
+      if (errorObj?.code === '23503') {
         errorMsg = 'Your account must be fully registered in the database before you can assign gigs. Please edit your profile first!';
-      } else if (err?.message || err?.details) {
-        errorMsg = err.message || err.details;
+      } else if (errorObj?.message || errorObj?.details) {
+        errorMsg = errorObj.message || errorObj.details;
       } else if (typeof err === 'string') {
         errorMsg = err;
       } else {

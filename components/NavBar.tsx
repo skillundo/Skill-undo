@@ -112,7 +112,7 @@ export function NavBar() {
               className="flex items-center gap-2 md:gap-3 bg-[#020617]/80 hover:bg-neon-cyan/10 border border-white/10 hover:border-neon-cyan/50 p-1 md:p-1.5 pr-3 md:pr-5 rounded-full shadow-[0_0_20px_rgba(6,182,212,0.15)] hover:shadow-[0_0_25px_rgba(6,182,212,0.4)] transition-all glass-panel"
             >
               <div className="w-7 h-7 md:w-8 md:h-8 rounded-full overflow-hidden border-2 border-neon-cyan/50 shrink-0">
-                <img src={user.imageUrl} alt="Profile" className="w-full h-full object-cover" />
+                <img src={user.imageUrl} alt="Profile" className="w-full h-full object-cover" crossOrigin="anonymous" />
               </div>
               <div className="flex flex-col text-left">
                 <span className="text-[8px] md:text-[9px] text-neon-cyan font-bold uppercase tracking-widest leading-none mb-0.5">Creator</span>
