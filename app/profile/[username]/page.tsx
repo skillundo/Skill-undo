@@ -1,7 +1,9 @@
 'use client';
 
+import Link from 'next/link';
+
 import { useState, useEffect } from 'react';
-import { Sparkles, Image as ImageIcon, Briefcase, MapPin, Edit2, X, Check, LogOut, Upload, Plus } from 'lucide-react';
+import { Sparkles, Image as ImageIcon, Briefcase, MapPin, Edit2, X, Check, LogOut, Upload, Plus, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUser, useClerk } from '@clerk/nextjs';
 import { supabase, type PortfolioItem, type Profile } from '@/lib/supabase';
@@ -209,6 +211,17 @@ export default function ProfilePage({ params }: { params: { username: string } }
       >
         <div className="absolute top-0 right-0 w-64 h-64 bg-neon-cyan/5 blur-[100px] rounded-full pointer-events-none group-hover:bg-neon-cyan/20 transition-colors duration-500" />
         
+        {/* Back Button Top Left */}
+        <div className="absolute top-4 left-4 md:top-6 md:left-6 z-20">
+          <Link 
+            href="/dashboard"
+            className="flex items-center justify-center p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-neon-cyan/20 hover:border-neon-cyan/50 hover:text-neon-cyan text-gray-400 transition-all shadow-[0_0_15px_rgba(0,0,0,0.5)]"
+            title="Back to Dashboard"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+        </div>
+
         {/* Action Buttons Top Right */}
         {isOwner && !isEditing && (
           <div className="absolute top-4 right-4 md:top-6 md:right-6 flex items-center gap-2 md:gap-3 z-20">

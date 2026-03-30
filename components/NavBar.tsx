@@ -46,8 +46,8 @@ export function NavBar() {
     }
   };
 
-  // Completely remove NavBar from the Landing Page for a cinematic feel
-  if (pathname === '/') return null;
+  // Only show the NavBar on the dashboard
+  if (!pathname.startsWith('/dashboard')) return null;
 
   return (
     <div className="fixed top-4 md:top-6 left-0 right-0 z-50 flex justify-center w-full pointer-events-none">
