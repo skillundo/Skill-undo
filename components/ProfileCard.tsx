@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight } from 'lucide-react';
+import { Sparkles, ArrowRight, Check } from 'lucide-react';
 import type { Profile } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
@@ -10,9 +10,10 @@ import { useUser } from '@clerk/nextjs';
 interface ProfileCardProps {
   profile: Profile;
   onHireClick?: () => void;
+  hasSentSignal?: boolean;
 }
 
-export function ProfileCard({ profile, onHireClick }: ProfileCardProps) {
+export function ProfileCard({ profile, onHireClick, hasSentSignal }: ProfileCardProps) {
   const { user } = useUser();
   const isOwner = user?.id === profile.id;
   const primarySkill = profile.skills && profile.skills.length > 0 ? profile.skills[0] : 'Talent';
@@ -80,12 +81,22 @@ export function ProfileCard({ profile, onHireClick }: ProfileCardProps) {
       {/* Action */}
       <div className="mt-auto pt-4 flex items-center justify-between border-t border-white/5">
         {!isOwner && (
-          <button 
-            onClick={onHireClick}
-            className="group/hire flex items-center gap-2 text-sm font-bold bg-neon-cyan/10 hover:bg-neon-cyan text-neon-cyan hover:text-black border border-neon-cyan/50 px-4 py-2 rounded-full transition-all duration-300 shadow-[0_0_15px_rgba(6,182,212,0.2)] hover:shadow-[0_0_20px_rgba(6,182,212,0.5)]"
-          >
-            Hire for {primarySkill}
-          </button>
+          hasSentSignal ? (
+            <button 
+              disabled
+              className="flex items-center gap-2 text-sm font-bold bg-white/5 text-gray-400 border border-white/10 px-4 py-2 rounded-full cursor-not-allowed"
+            >
+              <Check className="w-4 h-4 text-neon-cyan" />
+              Signal Sent
+            </button>
+          ) : (
+            <button 
+              onClick={onHireClick}
+              className="group/hire flex items-center gap-2 text-sm font-bold bg-neon-cyan/10 hover:bg-neon-cyan text-neon-cyan hover:text-black border border-neon-cyan/50 px-4 py-2 rounded-full transition-all duration-300 shadow-[0_0_15px_rgba(6,182,212,0.2)] hover:shadow-[0_0_20px_rgba(6,182,212,0.5)]"
+            >
+              Hire for {primarySkill}
+            </button>
+          )
         )}
         <Link 
           href={`/profile/${profile.username}`}

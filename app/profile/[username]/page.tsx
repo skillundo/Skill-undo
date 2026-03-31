@@ -176,13 +176,19 @@ export default function ProfilePage({ params }: { params: { username: string } }
     }
     
     setIsSaving(true);
+
+    let finalUrl = newProject.demo_url;
+    if (finalUrl && !/^https?:\/\//i.test(finalUrl)) {
+      finalUrl = `https://${finalUrl}`;
+    }
+
     const { data, error } = await supabase
       .from('portfolio_items')
       .insert([{
         profile_id: profile.id,
         title: newProject.title,
         description: newProject.description,
-        demo_url: newProject.demo_url
+        demo_url: finalUrl
       }])
       .select();
 
@@ -430,6 +436,11 @@ export default function ProfilePage({ params }: { params: { username: string } }
                     exit={{ opacity: 0, scale: 0.9 }}
                     key={item.id} 
                     whileHover={{ y: -8 }}
+                    onClick={() => {
+                      if (item.demo_url) {
+                        window.open(item.demo_url, '_blank', 'noopener,noreferrer');
+                      }
+                    }}
                     className="glass-panel aspect-video rounded-xl bg-white/5 border border-white/5 hover:border-neon-cyan/50 hover:shadow-[0_0_30px_rgba(6,182,212,0.3)] transition-all duration-300 overflow-hidden relative group cursor-pointer flex flex-col items-center justify-center"
                  >
                    <ImageIcon className="w-12 h-12 text-white/20 group-hover:text-neon-cyan/50 transition-colors duration-300" />

@@ -16,6 +16,7 @@ export default function DashboardFeed() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCreator, setSelectedCreator] = useState<Profile | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [sentSignals, setSentSignals] = useState<Set<string>>(new Set());
 
   // Initial Fetch & Realtime Subscription
   useEffect(() => {
@@ -120,9 +121,12 @@ export default function DashboardFeed() {
                 >
                   <ProfileCard 
                     profile={profile} 
+                    hasSentSignal={sentSignals.has(profile.id)}
                     onHireClick={() => {
-                      setSelectedCreator(profile);
-                      setIsModalOpen(true);
+                      if (!sentSignals.has(profile.id)) {
+                        setSelectedCreator(profile);
+                        setIsModalOpen(true);
+                      }
                     }} 
                   />
                 </motion.div>
@@ -140,6 +144,9 @@ export default function DashboardFeed() {
             setTimeout(() => setSelectedCreator(null), 300); // Wait for modal exit animation
           }} 
           creator={selectedCreator} 
+          onSignalSent={(creatorId) => {
+            setSentSignals(prev => new Set(prev).add(creatorId));
+          }}
         />
       )}
     </div>
