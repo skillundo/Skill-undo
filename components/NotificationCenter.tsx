@@ -46,42 +46,44 @@ export function NotificationCenter() {
     if (!user?.id) return;
 
     const senderChannel = supabase.channel('tasks-sender')
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'tasks', filter: `posted_by=eq.${user.id}` }, (payload) => {
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'tasks' }, (payload) => {
         const oldTask = payload.old as Task;
         const newTask = payload.new as Task;
         
-        // Trigger if 'status' transitions to 'accepted'
-        // Fallback for cases where old record isn't fully cached by realtime
-        if ((!oldTask.status || oldTask.status === 'open' || oldTask.status === 'pending') && newTask.status === 'accepted') {
-           toast.success('SIGNAL LOCKED! The creator has accepted your assignment. Mission is now Active.', {
-             style: { 
-               boxShadow: '0 0 30px rgba(6, 182, 212, 0.8)', 
-               border: '2px solid #06b6d4', 
-               background: 'rgba(2, 6, 23, 0.9)', 
-               color: '#fff',
-               fontSize: '1rem',
-               padding: '1rem' 
-             },
-             duration: 6000
-           });
-
-           // Momentary Fullscreen Cyber Blur pulse via body class (Optional VFX)
-           if (typeof document !== 'undefined') {
-             const vfxOverlay = document.createElement('div');
-             vfxOverlay.className = 'fixed inset-0 z-[9999] bg-cyan-500/20 backdrop-blur-sm pointer-events-none transition-all duration-700 ease-out';
-             document.body.appendChild(vfxOverlay);
-             
-             // Trigger fade out
-             requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                   vfxOverlay.style.opacity = '0';
-                });
+        // JS Filter: Trigger only if 'posted_by' matches current user
+        if (newTask.posted_by === user.id) {
+          // Trigger if 'status' transitions to 'accepted'
+          if (newTask.status === 'accepted' && oldTask.status !== 'accepted') {
+             toast.success('SIGNAL LOCKED! The creator has accepted your assignment. Mission is now Active.', {
+               style: { 
+                 boxShadow: '0 0 30px rgba(6, 182, 212, 0.8)', 
+                 border: '2px solid #06b6d4', 
+                 background: 'rgba(2, 6, 23, 0.9)', 
+                 color: '#fff',
+                 fontSize: '1rem',
+                 padding: '1rem' 
+               },
+               duration: 6000
              });
-             
-             setTimeout(() => {
-                vfxOverlay.remove();
-             }, 800);
-           }
+
+             // Momentary Fullscreen Cyber Blur pulse via body class (Optional VFX)
+             if (typeof document !== 'undefined') {
+               const vfxOverlay = document.createElement('div');
+               vfxOverlay.className = 'fixed inset-0 z-[9999] bg-cyan-500/20 backdrop-blur-sm pointer-events-none transition-all duration-700 ease-out';
+               document.body.appendChild(vfxOverlay);
+               
+               // Trigger fade out
+               requestAnimationFrame(() => {
+                  requestAnimationFrame(() => {
+                     vfxOverlay.style.opacity = '0';
+                  });
+               });
+               
+               setTimeout(() => {
+                  vfxOverlay.remove();
+               }, 800);
+             }
+          }
         }
       })
       .subscribe();
