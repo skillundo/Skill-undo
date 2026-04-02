@@ -32,7 +32,7 @@ export async function insertPortfolioItem(data: any) {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function insertGigSignal(data: any) {
   const { data: insertedData, error } = await serverSupabase
-    .from('gigs')
+    .from('tasks')
     .insert([data])
     .select();
 

@@ -37,12 +37,12 @@ export function AssignWorkModal({ isOpen, onClose, creator, onSignalSent }: Assi
     try {
       await insertGigSignal({
         title: formData.title,
-        description: formData.brief,
         budget: parseFloat(formData.budget),
         deadline: new Date(formData.deadline).toISOString(),
+        category: creator.skills && creator.skills.length > 0 ? creator.skills[0] : 'Direct Assignment',
         status: 'pending',
-        client_id: user.id,
-        creator_id: creator.id
+        posted_by: user.id,
+        assigned_to: creator.id
       });
 
       toast.success('Signal Synced to Grid.', { style: { boxShadow: '0 0 20px rgba(6, 182, 212, 0.4)', border: '1px solid #06b6d4', background: 'rgba(6, 182, 212, 0.1)', color: '#fff' }});
