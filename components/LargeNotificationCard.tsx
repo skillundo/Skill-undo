@@ -26,6 +26,7 @@ export function LargeNotificationCard({ task, onDismiss }: LargeNotificationCard
       if (error) throw error;
       
       setIsAccepted(true);
+      toast.success('Mission Accepted! The system has beamed your confirmation back to the client.', { style: { boxShadow: '0 0 20px rgba(6, 182, 212, 0.6)', border: '1px solid #06b6d4', background: 'rgba(6, 182, 212, 0.1)', color: '#fff' } });
       // Wait for exit animation to complete before unmounting
       setTimeout(() => {
         onDismiss();
