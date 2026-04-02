@@ -4,7 +4,18 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder';
 
 // Next.js Supabase client. Edge functions or standard client will assume Mumbai (ap-south-1) region if deployed closely.
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  global: {
+    fetch: typeof window === 'undefined' ? (url, options) => {
+      // Force no-store for server-side fetches to avoid Next.js caching standard Supabase responses
+      return fetch(url, { ...options, cache: 'no-store' });
+    } : fetch,
+    headers: {
+      'Cache-Control': 'no-cache',
+    },
+  },
+});
+
 
 export type Category = 'Digital Artist' | 'Content Writing' | 'UI/UX Design' | 'Full-Stack Dev' | 'Video Editing';
 

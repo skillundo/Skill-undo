@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { supabase, type Profile } from '@/lib/supabase';
 import { useUser } from '@clerk/nextjs';
+import { insertGigSignal } from '@/app/actions/supabase';
 
 interface AssignWorkModalProps {
   isOpen: boolean;
@@ -34,23 +35,17 @@ export function AssignWorkModal({ isOpen, onClose, creator, onSignalSent }: Assi
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase.from('gigs').insert([
-        {
-          title: formData.title,
-          description: formData.brief,
-          budget: parseFloat(formData.budget),
-          deadline: new Date(formData.deadline).toISOString(),
-          status: 'pending',
-          client_id: user.id,
-          creator_id: creator.id
-        }
-      ]);
+      await insertGigSignal({
+        title: formData.title,
+        description: formData.brief,
+        budget: parseFloat(formData.budget),
+        deadline: new Date(formData.deadline).toISOString(),
+        status: 'pending',
+        client_id: user.id,
+        creator_id: creator.id
+      });
 
-      if (error) {
-        throw error;
-      }
-
-      toast.success(`Signal Sent! Your gig is now in @${creator.username}'s orbit.`, { style: { boxShadow: '0 0 20px rgba(6, 182, 212, 0.4)' }});
+      toast.success('Signal Synced to Grid.', { style: { boxShadow: '0 0 20px rgba(6, 182, 212, 0.4)', border: '1px solid #06b6d4', background: 'rgba(6, 182, 212, 0.1)', color: '#fff' }});
       if (onSignalSent) {
         onSignalSent(creator.id);
       }
@@ -105,7 +100,7 @@ export function AssignWorkModal({ isOpen, onClose, creator, onSignalSent }: Assi
 
           <div className="mb-6">
             <h2 className="text-2xl font-extrabold text-white flex items-center gap-2 drop-shadow-[0_0_10px_rgba(6,182,212,0.3)]">
-              <span className="text-neon-cyan">Cyber-Contract</span>
+              <span className="text-neon-cyan">Assign Project Signal</span>
             </h2>
             <p className="text-gray-400 text-sm mt-1">Assigning a gig to @{creator.username}</p>
           </div>
@@ -170,7 +165,11 @@ export function AssignWorkModal({ isOpen, onClose, creator, onSignalSent }: Assi
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full flex justify-center items-center gap-2 bg-gradient-to-r from-neon-cyan to-blue-500 hover:from-white hover:to-white text-black font-extrabold px-6 py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:shadow-[0_0_30px_rgba(6,182,212,0.8)] disabled:opacity-50 disabled:cursor-not-allowed group/btn"
+                className={`w-full flex justify-center items-center gap-2 text-black font-extrabold px-6 py-3 rounded-xl transition-all disabled:opacity-80 disabled:cursor-not-allowed group/btn ${
+                  isSubmitting
+                    ? 'bg-neon-cyan animate-pulse shadow-[0_0_20px_rgba(6,182,212,0.5)] scale-[0.98]'
+                    : 'bg-gradient-to-r from-neon-cyan to-blue-500 hover:from-white hover:to-white shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:shadow-[0_0_30px_rgba(6,182,212,0.8)]'
+                }`}
               >
                 {isSubmitting ? (
                   <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />

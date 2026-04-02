@@ -3,17 +3,19 @@
 import Link from 'next/link';
 
 import { useState, useEffect } from 'react';
-import { Sparkles, Image as ImageIcon, Briefcase, MapPin, Edit2, X, Check, LogOut, Upload, Plus, ArrowLeft } from 'lucide-react';
+import { Sparkles, Image as ImageIcon, Briefcase, MapPin, Edit2, X, Check, LogOut, Upload, Plus, ArrowLeft, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useUser, useClerk } from '@clerk/nextjs';
+import { useUser, useClerk, useSession } from '@clerk/nextjs';
 import { supabase, type PortfolioItem, type Profile } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { addProjectAction } from '@/app/actions/projects';
 
 export default function ProfilePage({ params }: { params: { username: string } }) {
   const { username } = params;
   const decodedUsername = decodeURIComponent(username).toLowerCase();
   
   const { user, isLoaded } = useUser();
+  const { session } = useSession();
   const { signOut } = useClerk();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -182,25 +184,22 @@ export default function ProfilePage({ params }: { params: { username: string } }
       finalUrl = `https://${finalUrl}`;
     }
 
-    const { data, error } = await supabase
-      .from('portfolio_items')
-      .insert([{
-        profile_id: profile.id,
+    try {
+      const { data } = await addProjectAction({
         title: newProject.title,
         description: newProject.description,
         demo_url: finalUrl
-      }])
-      .select();
-
-    setIsSaving(false);
-
-    if (error) {
-      toast.error('Failed to add project', { description: error.message });
-    } else if (data) {
+      });
+      
+      setIsSaving(false);
       setPortfolioItems([data[0], ...portfolioItems]);
       setShowPortfolioModal(false);
       setNewProject({ title: '', description: '', demo_url: '' });
-      toast.success('Project added to your legend!', { style: { boxShadow: '0 0 20px rgba(6, 182, 212, 0.4)' }});
+      toast.success('Project beamed to your portfolio grid.', { style: { boxShadow: '0 0 20px rgba(6, 182, 212, 0.8)', border: '1px solid #06b6d4', background: 'rgba(6, 182, 212, 0.1)', color: '#fff' }});
+    } catch (error: any) {
+      setIsSaving(false);
+      console.error(`[RLS DEBUG] User ID: ${user?.id} | Table: portfolio_items | Error:`, error);
+      toast.error('Failed to add project', { description: error.message || 'Unknown error' });
     }
   };
 
@@ -436,24 +435,19 @@ export default function ProfilePage({ params }: { params: { username: string } }
                     exit={{ opacity: 0, scale: 0.9 }}
                     key={item.id} 
                     whileHover={{ y: -8 }}
-                    onClick={() => {
-                      if (item.demo_url) {
-                        window.open(item.demo_url, '_blank', 'noopener,noreferrer');
-                      }
-                    }}
-                    className="glass-panel aspect-video rounded-xl bg-white/5 border border-white/5 hover:border-neon-cyan/50 hover:shadow-[0_0_30px_rgba(6,182,212,0.3)] transition-all duration-300 overflow-hidden relative group cursor-pointer flex flex-col items-center justify-center"
+                    className="glass-panel aspect-video rounded-xl bg-white/5 border border-white/5 hover:border-neon-cyan/50 hover:shadow-[0_0_30px_rgba(6,182,212,0.3)] transition-all duration-300 overflow-hidden relative group flex flex-col items-center justify-center"
                  >
                    <ImageIcon className="w-12 h-12 text-white/20 group-hover:text-neon-cyan/50 transition-colors duration-300" />
                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#020617]/90 p-5 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                      <p className="text-sm font-bold text-white truncate">{item.title}</p>
-                      {item.description && <p className="text-xs text-gray-300 truncate mt-1">{item.description}</p>}
                       {item.demo_url ? (
-                        <a href={item.demo_url} target="_blank" rel="noopener noreferrer" className="text-xs text-neon-cyan mt-2 font-medium inline-block hover:text-white transition-colors">
-                          View details &gt;
+                        <a href={item.demo_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-cyan-400 hover:text-cyan-200 hover:drop-shadow-[0_0_8px_rgba(6,182,212,0.5)] transition-all group/link w-fit max-w-full">
+                          <p className="text-sm font-bold truncate group-hover/link:underline">{item.title}</p>
+                          <ExternalLink className="w-3.5 h-3.5 shrink-0" />
                         </a>
                       ) : (
-                        <p className="text-xs text-neon-cyan/50 mt-2 font-medium italic">No link provided</p>
+                        <p className="text-sm font-bold text-white truncate">{item.title}</p>
                       )}
+                      {item.description && <p className="text-xs text-gray-300 truncate mt-1">{item.description}</p>}
                    </div>
                  </motion.div>
               ))}
@@ -523,7 +517,11 @@ export default function ProfilePage({ params }: { params: { username: string } }
                 <button
                   onClick={handleSavePortfolio}
                   disabled={isSaving}
-                  className="bg-neon-cyan hover:bg-white text-black font-extrabold px-6 py-2.5 rounded-xl transition-all shadow-[0_0_15px_rgba(6,182,212,0.4)] disabled:opacity-50 flex items-center gap-2"
+                  className={`hover:bg-white text-black font-extrabold px-6 py-2.5 rounded-xl transition-all disabled:opacity-80 flex items-center gap-2 ${
+                    isSaving 
+                      ? 'bg-cyan-500/50 animate-pulse shadow-[0_0_20px_#06b6d4] scale-95' 
+                      : 'bg-neon-cyan shadow-[0_0_15px_rgba(6,182,212,0.4)]'
+                  }`}
                 >
                   {isSaving ? 'Saving...' : 'Save Project'}
                 </button>
