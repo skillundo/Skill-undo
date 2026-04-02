@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { X, Send } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
-import { supabase, type Profile } from '@/lib/supabase';
+import { type Profile } from '@/lib/supabase';
 import { useUser } from '@clerk/nextjs';
 import { insertGigSignal } from '@/app/actions/supabase';
 
