@@ -3,7 +3,7 @@
 import Link from 'next/link';
 
 import { useState, useEffect } from 'react';
-import { Sparkles, Image as ImageIcon, Briefcase, MapPin, Edit2, X, Check, LogOut, Upload, Plus, ArrowLeft, ExternalLink, ArrowUpRight } from 'lucide-react';
+import { Sparkles, Image as ImageIcon, Briefcase, MapPin, Edit2, X, Check, LogOut, Upload, Plus, ArrowLeft, ArrowUpRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUser, useClerk, useSession } from '@clerk/nextjs';
 import { supabase, type PortfolioItem, type Profile } from '@/lib/supabase';
@@ -15,7 +15,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
   const decodedUsername = decodeURIComponent(username).toLowerCase();
   
   const { user, isLoaded } = useUser();
-  const { session } = useSession();
+  // Removed unused session var
   const { signOut } = useClerk();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -196,10 +196,10 @@ export default function ProfilePage({ params }: { params: { username: string } }
       setShowPortfolioModal(false);
       setNewProject({ title: '', description: '', demo_url: '' });
       toast.success('Project Signal Received. Grid updated.', { style: { boxShadow: '0 0 20px rgba(6, 182, 212, 0.8)', border: '1px solid #06b6d4', background: 'rgba(6, 182, 212, 0.1)', color: '#fff' }});
-    } catch (error: any) {
+    } catch (error: unknown) {
       setIsSaving(false);
       console.error(`[RLS DEBUG] User ID: ${user?.id} | Table: portfolio_items | Error:`, error);
-      toast.error('Failed to add project', { description: error.message || 'Unknown error' });
+      toast.error('Failed to add project', { description: error instanceof Error ? error.message : 'Unknown error' });
     }
   };
 
