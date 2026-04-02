@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { Sparkles, Image as ImageIcon, Briefcase, MapPin, Edit2, X, Check, LogOut, Upload, Plus, ArrowLeft, ArrowUpRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useUser, useClerk, useSession } from '@clerk/nextjs';
+import { useUser, useClerk } from '@clerk/nextjs';
 import { supabase, type PortfolioItem, type Profile } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { addProjectAction } from '@/app/actions/projects';
