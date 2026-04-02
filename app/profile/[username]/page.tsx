@@ -3,7 +3,7 @@
 import Link from 'next/link';
 
 import { useState, useEffect } from 'react';
-import { Sparkles, Image as ImageIcon, Briefcase, MapPin, Edit2, X, Check, LogOut, Upload, Plus, ArrowLeft, ExternalLink } from 'lucide-react';
+import { Sparkles, Image as ImageIcon, Briefcase, MapPin, Edit2, X, Check, LogOut, Upload, Plus, ArrowLeft, ExternalLink, ArrowUpRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUser, useClerk, useSession } from '@clerk/nextjs';
 import { supabase, type PortfolioItem, type Profile } from '@/lib/supabase';
@@ -195,7 +195,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
       setPortfolioItems([data[0], ...portfolioItems]);
       setShowPortfolioModal(false);
       setNewProject({ title: '', description: '', demo_url: '' });
-      toast.success('Project beamed to your portfolio grid.', { style: { boxShadow: '0 0 20px rgba(6, 182, 212, 0.8)', border: '1px solid #06b6d4', background: 'rgba(6, 182, 212, 0.1)', color: '#fff' }});
+      toast.success('Project Signal Received. Grid updated.', { style: { boxShadow: '0 0 20px rgba(6, 182, 212, 0.8)', border: '1px solid #06b6d4', background: 'rgba(6, 182, 212, 0.1)', color: '#fff' }});
     } catch (error: any) {
       setIsSaving(false);
       console.error(`[RLS DEBUG] User ID: ${user?.id} | Table: portfolio_items | Error:`, error);
@@ -435,14 +435,14 @@ export default function ProfilePage({ params }: { params: { username: string } }
                     exit={{ opacity: 0, scale: 0.9 }}
                     key={item.id} 
                     whileHover={{ y: -8 }}
-                    className="glass-panel aspect-video rounded-xl bg-white/5 border border-white/5 hover:border-neon-cyan/50 hover:shadow-[0_0_30px_rgba(6,182,212,0.3)] transition-all duration-300 overflow-hidden relative group flex flex-col items-center justify-center"
+                    className="glass-panel aspect-video rounded-xl bg-white/5 border border-white/5 hover:border-neon-cyan/50 hover:shadow-[0_0_15px_rgba(6,182,212,0.4)] transition-all duration-300 overflow-hidden relative group flex flex-col items-center justify-center"
                  >
                    <ImageIcon className="w-12 h-12 text-white/20 group-hover:text-neon-cyan/50 transition-colors duration-300" />
                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#020617]/90 p-5 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
                       {item.demo_url ? (
-                        <a href={item.demo_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-cyan-400 hover:text-cyan-200 hover:drop-shadow-[0_0_8px_rgba(6,182,212,0.5)] transition-all group/link w-fit max-w-full">
-                          <p className="text-sm font-bold truncate group-hover/link:underline">{item.title}</p>
-                          <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                        <a href={item.demo_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-neon-cyan hover:text-cyan-200 hover:drop-shadow-[0_0_8px_rgba(6,182,212,0.5)] transition-all group/link w-fit max-w-full">
+                          <span className="text-sm font-bold truncate group-hover/link:underline">{item.title}</span>
+                          <ArrowUpRight className="w-4 h-4 shrink-0 text-neon-cyan" />
                         </a>
                       ) : (
                         <p className="text-sm font-bold text-white truncate">{item.title}</p>
@@ -514,17 +514,25 @@ export default function ProfilePage({ params }: { params: { username: string } }
               </div>
 
               <div className="mt-8 flex justify-end">
-                <button
+                <motion.button
+                  layout
                   onClick={handleSavePortfolio}
                   disabled={isSaving}
-                  className={`hover:bg-white text-black font-extrabold px-6 py-2.5 rounded-xl transition-all disabled:opacity-80 flex items-center gap-2 ${
+                  className={`text-black font-extrabold transition-all disabled:opacity-100 flex items-center justify-center ${
                     isSaving 
-                      ? 'bg-cyan-500/50 animate-pulse shadow-[0_0_20px_#06b6d4] scale-95' 
-                      : 'bg-neon-cyan shadow-[0_0_15px_rgba(6,182,212,0.4)]'
+                      ? 'bg-transparent shadow-[0_0_15px_rgba(6,182,212,0.8)] scale-95 w-12 h-12 rounded-full !p-0 border-2 border-cyan-500 cursor-not-allowed' 
+                      : 'bg-neon-cyan hover:bg-white shadow-[0_0_15px_rgba(6,182,212,0.4)] px-6 py-2.5 rounded-xl hover:shadow-[0_0_25px_rgba(6,182,212,0.6)] gap-2'
                   }`}
                 >
-                  {isSaving ? 'Saving...' : 'Save Project'}
-                </button>
+                  {isSaving ? (
+                     <motion.div 
+                       layoutId="spinner"
+                       className="w-5 h-5 border-2 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin shadow-[0_0_10px_rgba(6,182,212,0.5)]" 
+                     />
+                  ) : (
+                     <motion.span layoutId="text">Save Project</motion.span>
+                  )}
+                </motion.button>
               </div>
             </motion.div>
           </motion.div>

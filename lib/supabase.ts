@@ -46,7 +46,7 @@ export type Task = {
   budget: number;
   deadline: string;
   category: string;
-  status: 'open' | 'assigned' | 'completed' | 'pending';
+  status: 'open' | 'assigned' | 'completed' | 'pending' | 'accepted' | 'declined';
   posted_by?: string;
   assigned_to?: string | null;
   created_at?: string;

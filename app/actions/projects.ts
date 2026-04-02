@@ -4,9 +4,9 @@ import { createClient } from '@supabase/supabase-js';
 import { auth } from '@clerk/nextjs/server';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-const adminSupabase = createClient(supabaseUrl, supabaseServiceKey, {
+const serverSupabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: false,
     persistSession: false
@@ -17,15 +17,13 @@ const adminSupabase = createClient(supabaseUrl, supabaseServiceKey, {
 export async function addProjectAction(formData: any) {
   const { userId } = auth();
 
+  console.log("SERVER ACTION: User ID from Clerk =", userId);
+
   if (!userId) {
     throw new Error('You must be logged in to add a project.');
   }
 
-  if (!supabaseServiceKey) {
-    throw new Error('SUPABASE_SERVICE_ROLE_KEY is missing from environment variables.');
-  }
-
-  const { data: insertedData, error } = await adminSupabase
+  const { data: insertedData, error } = await serverSupabase
     .from('portfolio_items')
     .insert([{
       profile_id: userId,
