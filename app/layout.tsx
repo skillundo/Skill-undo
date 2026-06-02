@@ -18,23 +18,43 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const clerkConfigured = Boolean(
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
+    process.env.NEXT_PUBLIC_CLERK_FRONTEND_API
+  );
+
   return (
-    <ClerkProvider>
-      <html lang="en">
-        <body className={`${inter.className} bg-[#020617]`}>
-          <NavBar />
-          <OnboardingModal />
-          <main className="pt-32 pb-16 px-4 md:px-8 max-w-7xl mx-auto min-h-screen">
-            {children}
-          </main>
-          <Toaster 
-            theme="dark" 
-            toastOptions={{
-              className: 'glass-panel !bg-black/40 !border-cyan-500/50 !text-white'
-            }} 
-          />
-        </body>
-      </html>
-    </ClerkProvider>
+    <html lang="en">
+      <body className={`${inter.className} bg-[#020617]`}>
+        {clerkConfigured ? (
+          <ClerkProvider>
+            <NavBar />
+            <OnboardingModal />
+            <main className="pt-32 pb-16 px-4 md:px-8 max-w-7xl mx-auto min-h-screen">
+              {children}
+            </main>
+            <Toaster
+              theme="dark"
+              toastOptions={{
+                className: 'glass-panel !bg-black/40 !border-cyan-500/50 !text-white'
+              }}
+            />
+          </ClerkProvider>
+        ) : (
+          <>
+            <NavBar />
+            <main className="pt-32 pb-16 px-4 md:px-8 max-w-7xl mx-auto min-h-screen">
+              {children}
+            </main>
+            <Toaster
+              theme="dark"
+              toastOptions={{
+                className: 'glass-panel !bg-black/40 !border-cyan-500/50 !text-white'
+              }}
+            />
+          </>
+        )}
+      </body>
+    </html>
   );
 }

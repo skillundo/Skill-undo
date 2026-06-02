@@ -1,6 +1,19 @@
+import { NextResponse } from 'next/server';
 import { clerkMiddleware } from "@clerk/nextjs/server";
 
-export default clerkMiddleware();
+const clerkConfigured = Boolean(
+  process.env.CLERK_SECRET ||
+  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
+  process.env.NEXT_PUBLIC_CLERK_FRONTEND_API
+);
+
+const noopMiddleware = () => {
+  return (request: Request) => {
+    return NextResponse.next();
+  };
+};
+
+export default (clerkConfigured ? clerkMiddleware() : noopMiddleware());
 
 export const config = {
   matcher: [
