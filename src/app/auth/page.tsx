@@ -6,6 +6,7 @@ import { mockFirebaseAuth } from "@/lib/firebase";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
+import { ShaderBackground } from "@/components/ui/shader-background";
 
 export default function AuthPage() {
   const { setUser } = useAuth();
@@ -20,6 +21,12 @@ export default function AuthPage() {
     setLoading(true);
     setError("");
     
+    if (!isLogin && password.length < 8) {
+      setError("Password must be at least 8 characters long.");
+      setLoading(false);
+      return;
+    }
+
     try {
       let user;
       if (isLogin) {
@@ -49,8 +56,9 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center p-4">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white dark:bg-black border border-black/10 dark:border-white/10 rounded-2xl shadow-sm">
+    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center p-4 relative">
+      <ShaderBackground />
+      <div className="w-full max-w-md p-8 space-y-6 bg-white/90 dark:bg-black/90 backdrop-blur-md border border-black/10 dark:border-white/10 rounded-2xl shadow-sm z-10">
         <div className="space-y-2 text-center">
           <Link href="/" className="inline-block mb-4 font-bold tracking-tighter text-2xl">
             SKILLUNDO

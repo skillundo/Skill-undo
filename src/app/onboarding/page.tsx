@@ -6,6 +6,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { mockFirestore } from "@/lib/firebase";
 import { Input } from "@/components/ui/input";
 import { Loader2, Plus, X } from "lucide-react";
+import { ShaderBackground } from "@/components/ui/shader-background";
 
 export default function OnboardingPage() {
   const { user, checkProfileCompleteness } = useAuth();
@@ -13,6 +14,7 @@ export default function OnboardingPage() {
   
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   
   // Form State
   const [name, setName] = useState(user?.displayName || "");
@@ -27,6 +29,7 @@ export default function OnboardingPage() {
   const [hours, setHours] = useState("");
 
   const handleAddSkill = () => {
+    setError("");
     if (currentSkill.trim()) {
       setSkills([...skills, { name: currentSkill.trim(), level: currentLevel }]);
       setCurrentSkill("");
@@ -39,6 +42,13 @@ export default function OnboardingPage() {
 
   const handleSubmit = async () => {
     if (!user) return;
+    setError("");
+    
+    if (isSeller && portfolio && !/^https?:\/\/.+/.test(portfolio)) {
+      setError("Please enter a valid URL for your portfolio starting with http:// or https://");
+      return;
+    }
+    
     setLoading(true);
     
     try {
@@ -63,8 +73,9 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center p-4">
-      <div className="w-full max-w-xl p-8 space-y-8 bg-white dark:bg-black border border-black/10 dark:border-white/10 rounded-2xl shadow-sm">
+    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center p-4 relative">
+      <ShaderBackground />
+      <div className="w-full max-w-xl p-8 space-y-8 bg-white/90 dark:bg-black/90 backdrop-blur-md border border-black/10 dark:border-white/10 rounded-2xl shadow-sm z-10">
         
         <div className="space-y-2">
           <div className="flex items-center justify-between">
@@ -97,8 +108,22 @@ export default function OnboardingPage() {
                 placeholder="johndoe123" 
               />
             </div>
+            
+            {error && step === 1 && <p className="text-sm text-red-500">{error}</p>}
+
             <button 
-              onClick={() => setStep(2)}
+              onClick={() => {
+                setError("");
+                if (name.trim().length < 2) {
+                  setError("Full Name must be at least 2 characters.");
+                  return;
+                }
+                if (username.trim().length < 3 || !/^[a-zA-Z0-9_]+$/.test(username.trim())) {
+                  setError("Username must be at least 3 characters and contain only letters, numbers, and underscores.");
+                  return;
+                }
+                setStep(2);
+              }}
               disabled={!name.trim() || !username.trim()}
               className="mt-6 w-full inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground h-10 px-4 py-2 disabled:opacity-50"
             >
@@ -201,6 +226,8 @@ export default function OnboardingPage() {
                 </div>
               </div>
             )}
+
+            {error && step === 3 && <p className="text-sm text-red-500">{error}</p>}
 
             <div className="flex gap-4 mt-6">
               <button 

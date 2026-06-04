@@ -17,7 +17,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const PUBLIC_ROUTES = ["/", "/auth"];
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const [user, setUserState] = useState<AuthUser | null>(null);
   const [isProfileComplete, setIsProfileComplete] = useState(false);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const savedSession = localStorage.getItem("mock_session");
     if (savedSession) {
       const parsedUser = JSON.parse(savedSession) as AuthUser;
-      setUser(parsedUser);
+      setUserState(parsedUser); // use internal state setter
       
       const isComplete = localStorage.getItem(`profile_complete_${parsedUser.uid}`) === "true";
       setIsProfileComplete(isComplete);
@@ -55,15 +55,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(false);
   }, []);
 
-  // Sync user state to localStorage
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem("mock_session", JSON.stringify(user));
+  const setUser = (newUser: AuthUser | null) => {
+    setUserState(newUser);
+    if (newUser) {
+      localStorage.setItem("mock_session", JSON.stringify(newUser));
     } else {
       localStorage.removeItem("mock_session");
       setIsProfileComplete(false);
     }
-  }, [user]);
+  };
 
   // Route guarding
   useEffect(() => {
@@ -74,9 +74,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!user && !isPublicRoute) {
       router.push("/auth");
     } else if (user) {
-      if (!isProfileComplete && pathname !== "/onboarding") {
+      if (!isProfileComplete && pathname !== "/onboarding" && pathname !== "/") {
         router.push("/onboarding");
-      } else if (isProfileComplete && (pathname === "/auth" || pathname === "/onboarding" || pathname === "/")) {
+      } else if (isProfileComplete && (pathname === "/auth" || pathname === "/onboarding")) {
         router.push("/dashboard");
       }
     }

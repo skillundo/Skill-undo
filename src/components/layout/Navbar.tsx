@@ -9,12 +9,13 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 
 export function Navbar() {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
   const handleLogout = async () => {
     await mockFirebaseAuth.signOut();
+    setUser(null);
     router.push("/");
   };
 
@@ -70,13 +71,43 @@ export function Navbar() {
                 </button>
               </div>
             </>
-          ) : !user && !isPublicPage ? (
+          ) : user && pathname === "/" ? (
             <Link 
-              href="/auth"
+              href="/dashboard"
               className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground h-9 px-4 py-2"
             >
-              Sign In
+              Go to Dashboard
             </Link>
+          ) : !user ? (
+            pathname === "/" ? (
+              <div className="flex items-center gap-4">
+                <a 
+                  href="#about"
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  About
+                </a>
+                <Link 
+                  href="/auth"
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Login
+                </Link>
+                <Link 
+                  href="/auth"
+                  className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground h-9 px-4 py-2"
+                >
+                  Sign Up
+                </Link>
+              </div>
+            ) : !isPublicPage ? (
+              <Link 
+                href="/auth"
+                className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground h-9 px-4 py-2"
+              >
+                Sign In
+              </Link>
+            ) : null
           ) : null}
         </div>
       </div>
