@@ -1,0 +1,138 @@
+"use client";
+
+import { useState } from "react";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { mockFirebaseAuth } from "@/lib/firebase";
+import { Input } from "@/components/ui/input";
+import { Loader2 } from "lucide-react";
+import Link from "next/link";
+
+export default function AuthPage() {
+  const { setUser } = useAuth();
+  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    
+    try {
+      let user;
+      if (isLogin) {
+        user = await mockFirebaseAuth.signInWithEmail(email, password);
+      } else {
+        user = await mockFirebaseAuth.signUp(email, password);
+      }
+      setUser(user);
+    } catch (err: any) {
+      setError(err.message || "An error occurred during authentication.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleAuth = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const user = await mockFirebaseAuth.signInWithGoogle();
+      setUser(user);
+    } catch (err: any) {
+      setError(err.message || "An error occurred with Google Auth.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center p-4">
+      <div className="w-full max-w-md p-8 space-y-6 bg-white dark:bg-black border border-black/10 dark:border-white/10 rounded-2xl shadow-sm">
+        <div className="space-y-2 text-center">
+          <Link href="/" className="inline-block mb-4 font-bold tracking-tighter text-2xl">
+            SKILLUNDO
+          </Link>
+          <h1 className="text-3xl font-semibold tracking-tight">
+            {isLogin ? "Welcome back" : "Create an account"}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {isLogin 
+              ? "Enter your credentials to access your account" 
+              : "Sign up to start hiring and offering skills"}
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium leading-none" htmlFor="email">Email</label>
+            <Input 
+              id="email" 
+              type="email" 
+              placeholder="student@college.edu" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium leading-none" htmlFor="password">Password</label>
+            <Input 
+              id="password" 
+              type="password" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          {error && <p className="text-sm text-red-500">{error}</p>}
+
+          <button 
+            type="submit" 
+            disabled={loading}
+            className="inline-flex w-full items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+          >
+            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isLogin ? "Sign In" : "Sign Up"}
+          </button>
+        </form>
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">
+              Or continue with
+            </span>
+          </div>
+        </div>
+
+        <button 
+          onClick={handleGoogleAuth}
+          disabled={loading}
+          className="inline-flex w-full items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2"
+        >
+          <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
+            <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
+          </svg>
+          Google
+        </button>
+
+        <div className="text-center text-sm">
+          {isLogin ? "Don't have an account? " : "Already have an account? "}
+          <button 
+            type="button"
+            onClick={() => setIsLogin(!isLogin)} 
+            className="font-medium underline underline-offset-4 hover:text-primary"
+          >
+            {isLogin ? "Sign up" : "Sign in"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
