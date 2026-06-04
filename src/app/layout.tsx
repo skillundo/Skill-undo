@@ -8,9 +8,6 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Skillundo - Peer-to-Peer Student Marketplace",
   description: "A unified platform for students to hire peers and offer skills.",
-  verification: {
-    google: "36w2Rskz1EwP59jg49pfDSB5rty5fWqHrXusm3uSdvs",
-  },
 };
 
 export default function RootLayout({

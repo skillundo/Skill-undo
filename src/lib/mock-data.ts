@@ -7,6 +7,9 @@ export interface UserProfile {
   skills: Skill[];
   rating: number;
   completedJobs: number;
+  college: string;
+  locality: string;
+  portfolio: string[];
 }
 
 export interface Project {
@@ -36,6 +39,12 @@ export const MOCK_USERS: UserProfile[] = [
     skills: ["Next.js", "React", "TypeScript"],
     rating: 4.9,
     completedJobs: 12,
+    college: "MIT",
+    locality: "Boston, MA",
+    portfolio: [
+      "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&q=80&w=800",
+      "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=800"
+    ]
   },
   {
     id: "u2",
@@ -44,6 +53,12 @@ export const MOCK_USERS: UserProfile[] = [
     skills: ["Figma", "UI/UX", "Tailwind"],
     rating: 5.0,
     completedJobs: 24,
+    college: "Rhode Island School of Design",
+    locality: "Providence, RI",
+    portfolio: [
+      "https://images.unsplash.com/photo-1561070791-2526d30994b5?auto=format&fit=crop&q=80&w=800",
+      "https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?auto=format&fit=crop&q=80&w=800"
+    ]
   },
   {
     id: "u3",
@@ -52,6 +67,12 @@ export const MOCK_USERS: UserProfile[] = [
     skills: ["Node.js", "PostgreSQL", "API"],
     rating: 4.7,
     completedJobs: 8,
+    college: "Stanford University",
+    locality: "Stanford, CA",
+    portfolio: [
+      "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&q=80&w=800",
+      "https://images.unsplash.com/photo-1550439062-609e1531270e?auto=format&fit=crop&q=80&w=800"
+    ]
   },
   {
     id: "u4",
@@ -60,6 +81,12 @@ export const MOCK_USERS: UserProfile[] = [
     skills: ["Copywriting", "SEO", "Content"],
     rating: 4.8,
     completedJobs: 19,
+    college: "NYU",
+    locality: "New York, NY",
+    portfolio: [
+      "https://images.unsplash.com/photo-1455390582262-044cdead27d8?auto=format&fit=crop&q=80&w=800",
+      "https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?auto=format&fit=crop&q=80&w=800"
+    ]
   },
 ];
 
