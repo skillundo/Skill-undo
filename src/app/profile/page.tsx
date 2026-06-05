@@ -53,35 +53,72 @@ export default function ProfilePage() {
   };
 
   useEffect(() => {
+    let isMounted = true;
     async function loadProfile() {
-      if (user) {
+      if (user?.uid) {
         try {
           const docRef = doc(db, "users", user.uid);
           const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
+          if (docSnap.exists() && isMounted) {
             setProfile(docSnap.data() as Partial<UserProfile>);
           }
         } catch (err) {
           console.error("Error loading profile:", err);
         }
       }
-      setLoading(false);
+      if (isMounted) setLoading(false);
     }
-    loadProfile();
-  }, [user]);
+    
+    if (user?.uid) {
+      loadProfile();
+    } else if (user === null) {
+      if (isMounted) setLoading(false);
+    }
+    
+    return () => { isMounted = false; };
+  }, [user?.uid]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !profile) return;
     
+    // 2. ENFORCE MANDATORY VS OPTIONAL FIELDS
+    const username = profile.username?.trim().toLowerCase();
+    const college = profile.college?.trim();
+    
+    if (!username || !college) {
+      alert("Username and College are required fields.");
+      return; // Stop execution here, don't set saving to true
+    }
+    
     setSaving(true);
     try {
-      const docRef = doc(db, "users", user.uid);
+      // 4. USERNAME UNIQUENESS CHECK
+      const usernameDocRef = doc(db, "usernames", username);
+      const usernameDoc = await getDoc(usernameDocRef);
       
-      // Add a 10-second timeout to prevent infinite hanging if Firestore isn't created
+      if (usernameDoc.exists() && usernameDoc.data().uid !== user.uid) {
+        alert("Username is already taken. Please choose another one.");
+        setSaving(false);
+        return;
+      }
+      
+      // Claim the username in the unique usernames collection
+      await setDoc(usernameDocRef, { uid: user.uid });
+      
+      const docRef = doc(db, "users", user.uid);
+      const profileToSave = {
+        ...profile,
+        username,
+        college,
+        skills: profile.skills || [],
+        portfolio: profile.portfolio || []
+      };
+      
+      // Save profile with a timeout to catch uninitialized databases
       await Promise.race([
-        setDoc(docRef, profile, { merge: true }),
-        new Promise((_, reject) => setTimeout(() => reject(new Error("Database connection timed out. Please ensure you have clicked 'Create Database' under Firestore Database in your Firebase Console.")), 10000))
+        setDoc(docRef, profileToSave, { merge: true }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("Database connection timed out. Check your Firestore Security Rules and initialization.")), 10000))
       ]);
       
       alert("Profile updated successfully!");
