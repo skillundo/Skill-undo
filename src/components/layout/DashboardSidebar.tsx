@@ -30,17 +30,17 @@ export function DashboardSidebar() {
   ];
 
   return (
-    <aside className="fixed bottom-0 left-0 z-50 w-full h-16 bg-background border-t border-border flex flex-row items-center justify-around px-2 xl:px-0 xl:top-0 xl:h-screen xl:w-64 xl:border-r xl:border-t-0 xl:flex-col xl:items-stretch xl:justify-start">
+    <aside className="fixed bottom-0 left-0 z-50 w-full h-16 bg-background border-t border-border flex flex-row items-center justify-around px-2 lg:px-0 lg:top-0 lg:h-screen lg:w-64 lg:border-r lg:border-t-0 lg:flex-col lg:items-stretch lg:justify-start">
       
       {/* Desktop Logo Area (Hidden on Mobile) */}
-      <div className="hidden xl:flex h-20 items-center px-6 pt-4 mb-4">
+      <div className="hidden lg:flex h-20 items-center px-6 pt-4 mb-4">
         <Link href="/" className="flex items-center gap-2">
           <span className="text-xl font-bold tracking-tighter">SKILLUNDO</span>
         </Link>
       </div>
 
       {/* Prominent CTA (Hidden on Mobile) */}
-      <div className="hidden xl:block px-4 mb-6">
+      <div className="hidden lg:block px-4 mb-6">
         <Link 
           href="/workspace/new" 
           className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground p-3 rounded-xl hover:bg-primary/90 transition-all shadow-md hover:shadow-lg group"
@@ -51,7 +51,7 @@ export function DashboardSidebar() {
       </div>
 
       {/* Navigation Links */}
-      <nav className="flex flex-row items-center justify-around w-full xl:flex-col xl:flex-1 xl:items-stretch xl:px-3 xl:space-y-2 xl:justify-start">
+      <nav className="flex flex-row items-center justify-around w-full lg:flex-col lg:flex-1 lg:items-stretch lg:px-3 lg:space-y-2 lg:justify-start">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
@@ -62,14 +62,14 @@ export function DashboardSidebar() {
               <div className="relative flex items-center justify-center">
                 <Icon className={`h-6 w-6 group-hover:scale-105 transition-transform ${(item.isAction ? showSearch : isActive && !showSearch) ? "fill-foreground/10 stroke-[2.5]" : "stroke-[2]"}`} />
                 {item.badge && (
-                  <span className="absolute -top-1 -right-2 xl:hidden bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                  <span className="absolute -top-1 -right-2 lg:hidden bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
                     {item.badge}
                   </span>
                 )}
               </div>
 
               {/* Desktop Text + Badge */}
-              <div className="hidden xl:flex flex-1 items-center justify-between min-w-0">
+              <div className="hidden lg:flex flex-1 items-center justify-between min-w-0">
                 <span className="text-base font-medium truncate mr-2">{item.label}</span>
                 {item.badge && (
                   <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0">
@@ -87,7 +87,7 @@ export function DashboardSidebar() {
                 onClick={() => {
                   if (item.label === "Search") setShowSearch(!showSearch);
                 }}
-                className={`flex flex-col xl:flex-row items-center justify-center xl:justify-start gap-1 xl:gap-4 p-2 xl:p-3 rounded-xl transition-colors text-foreground/80 hover:text-foreground group ${showSearch && item.label === "Search" ? "text-foreground xl:bg-muted/80" : "xl:hover:bg-muted/80"}`}
+                className={`flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-1 lg:gap-4 p-2 lg:p-3 rounded-xl transition-colors text-foreground/80 hover:text-foreground group ${showSearch && item.label === "Search" ? "text-foreground lg:bg-muted/80" : "lg:hover:bg-muted/80"}`}
               >
                 {content}
               </button>
@@ -99,10 +99,10 @@ export function DashboardSidebar() {
               key={item.label}
               href={item.href}
               onClick={() => setShowSearch(false)}
-              className={`flex flex-col xl:flex-row items-center justify-center xl:justify-start gap-1 xl:gap-4 p-2 xl:p-3 rounded-xl transition-colors group relative ${
+              className={`flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-1 lg:gap-4 p-2 lg:p-3 rounded-xl transition-colors group relative ${
                 isActive && !showSearch
-                  ? "text-foreground xl:font-bold" 
-                  : "text-foreground/80 hover:text-foreground xl:hover:bg-muted/80"
+                  ? "text-foreground lg:font-bold" 
+                  : "text-foreground/80 hover:text-foreground lg:hover:bg-muted/80"
               }`}
             >
               {content}
@@ -113,7 +113,7 @@ export function DashboardSidebar() {
         {/* Mobile Profile Icon */}
         <button 
           onClick={() => setShowProfileMenu(!showProfileMenu)}
-          className="xl:hidden flex flex-col items-center justify-center p-2 rounded-xl text-foreground/80 hover:text-foreground"
+          className="lg:hidden flex flex-col items-center justify-center p-2 rounded-xl text-foreground/80 hover:text-foreground"
         >
           <Avatar className="h-7 w-7 border border-border">
             <AvatarImage src={user?.photoURL || ""} alt={user?.displayName || "User"} />
@@ -126,9 +126,9 @@ export function DashboardSidebar() {
 
       {/* Slide-out Search Pane */}
       {showSearch && (
-        <div className="absolute bottom-16 xl:bottom-auto xl:top-0 left-0 xl:left-full h-[50vh] xl:h-screen w-full xl:w-80 bg-background border-t xl:border-t-0 xl:border-r border-border z-30 shadow-2xl animate-in slide-in-from-bottom-8 xl:slide-in-from-left-8 fade-in-20">
+        <div className="absolute bottom-16 lg:bottom-auto lg:top-0 left-0 lg:left-full h-[50vh] lg:h-screen w-full lg:w-80 bg-background border-t lg:border-t-0 lg:border-r border-border z-30 shadow-2xl animate-in slide-in-from-bottom-8 lg:slide-in-from-left-8 fade-in-20">
           <div className="p-6 h-full flex flex-col">
-            <h2 className="text-xl xl:text-2xl font-bold mb-4 xl:mb-6">Search</h2>
+            <h2 className="text-xl lg:text-2xl font-bold mb-4 lg:mb-6">Search</h2>
             <div className="space-y-4">
               <input 
                 type="text" 
@@ -150,9 +150,9 @@ export function DashboardSidebar() {
       )}
 
       {/* Profile Management Section (Desktop) / Mobile Menu Overlay */}
-      <div className={`relative xl:p-4 xl:mt-auto xl:border-t xl:border-border/50 ${showProfileMenu ? 'block' : 'hidden xl:block'}`}>
+      <div className={`relative lg:p-4 lg:mt-auto lg:border-t lg:border-border/50 ${showProfileMenu ? 'block' : 'hidden lg:block'}`}>
         {showProfileMenu && (
-          <div className="absolute bottom-full right-4 xl:right-auto xl:left-4 mb-4 xl:mb-2 w-56 bg-card border border-border rounded-xl shadow-lg p-2 z-50 animate-in slide-in-from-bottom-2 fade-in-20">
+          <div className="absolute bottom-full right-4 lg:right-auto lg:left-4 mb-4 lg:mb-2 w-56 bg-card border border-border rounded-xl shadow-lg p-2 z-50 animate-in slide-in-from-bottom-2 fade-in-20">
             <Link href="/dashboard/profile" className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/80 text-sm font-medium transition-colors">
               <User className="h-4 w-4" /> View Profile
             </Link>
@@ -169,7 +169,7 @@ export function DashboardSidebar() {
         {/* Desktop Profile Button */}
         <button 
           onClick={() => setShowProfileMenu(!showProfileMenu)}
-          className="hidden xl:flex w-full items-center gap-3 p-2 rounded-xl hover:bg-muted/80 transition-colors"
+          className="hidden lg:flex w-full items-center gap-3 p-2 rounded-xl hover:bg-muted/80 transition-colors"
         >
           <Avatar className="h-10 w-10 border border-border shadow-sm">
             <AvatarImage src={user?.photoURL || ""} alt={user?.displayName || "User"} />

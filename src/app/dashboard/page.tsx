@@ -54,7 +54,7 @@ export default function DashboardFeed() {
   }, []);
 
   return (
-    <div className="py-8 px-6 w-full max-w-[1600px] mx-auto flex flex-col xl:flex-row gap-8">
+    <div className="py-8 px-6 w-full max-w-[1600px] mx-auto flex flex-col lg:flex-row gap-8">
       {/* Main Content Area */}
       <div className="flex-1 min-w-0">
         
@@ -119,7 +119,7 @@ export default function DashboardFeed() {
 
         {/* Grid Feed */}
         {displayedPosts.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {displayedPosts.map((post) => (
               <PortfolioPost key={post.id} post={post} />
             ))}
@@ -136,7 +136,7 @@ export default function DashboardFeed() {
       </div>
 
       {/* Right Sidebar (Social/Trending) */}
-      <div className="hidden xl:block w-80 shrink-0">
+      <div className="hidden lg:block w-80 shrink-0">
         <SuggestedSellers />
       </div>
     </div>
