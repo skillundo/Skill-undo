@@ -65,9 +65,17 @@ export default function ProfilePage() {
     setSaving(true);
     try {
       const docRef = doc(db, "users", user.uid);
-      await setDoc(docRef, profile, { merge: true });
-    } catch (err) {
+      
+      // Add a 10-second timeout to prevent infinite hanging if Firestore isn't created
+      await Promise.race([
+        setDoc(docRef, profile, { merge: true }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("Database connection timed out. Please ensure you have clicked 'Create Database' under Firestore Database in your Firebase Console.")), 10000))
+      ]);
+      
+      alert("Profile updated successfully!");
+    } catch (err: unknown) {
       console.error("Error saving profile:", err);
+      alert("Failed to save profile: " + ((err as Error).message || "Unknown error"));
     } finally {
       setSaving(false);
     }

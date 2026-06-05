@@ -54,20 +54,24 @@ export default function OnboardingPage() {
     
     try {
       const userDocRef = doc(db, "users", user.uid);
-      await setDoc(userDocRef, {
-        fullName: name.trim(),
-        username: username.trim().toLowerCase(),
-        avatarUrl: user.photoURL || "",
-        skills: skills.map(s => s.name),
-        rating: 0,
-        completedJobs: 0,
-        college: "Not specified",
-        locality: "Not specified",
-        portfolio: isSeller && portfolio ? [portfolio] : [],
-        hours: isSeller && hours ? hours : "",
-        isSeller,
-        updatedAt: new Date().toISOString(),
-      }, { merge: true });
+      // Add a 10-second timeout to prevent infinite hanging
+      await Promise.race([
+        setDoc(userDocRef, {
+          fullName: name.trim(),
+          username: username.trim().toLowerCase(),
+          avatarUrl: user.photoURL || "",
+          skills: skills.map(s => s.name),
+          rating: 0,
+          completedJobs: 0,
+          college: "Not specified",
+          locality: "Not specified",
+          portfolio: isSeller && portfolio ? [portfolio] : [],
+          hours: isSeller && hours ? hours : "",
+          isSeller,
+          updatedAt: new Date().toISOString(),
+        }, { merge: true }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("Database connection timed out. Please ensure you have clicked 'Create Database' under Firestore Database in your Firebase Console.")), 10000))
+      ]);
       
       // Update local storage status
       localStorage.setItem(`profile_complete_${user.uid}`, "true");
