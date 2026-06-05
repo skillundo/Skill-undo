@@ -65,7 +65,7 @@ export default function DashboardFeed() {
               <span>🎯</span> {matchingSkillsCount > 0 ? `${matchingSkillsCount} gigs match your profile` : "Discover top campus talent"}
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
-              {currentUser ? `We found several students offering skills related to your interests in ${currentUser.college}.` : "Sign in to see personalized matches from your batchmates."}
+              {user ? "We found several students offering skills related to your interests." : "Sign in to see personalized matches from your batchmates."}
             </p>
           </div>
           <button className="hidden sm:block px-4 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-lg shadow-sm hover:bg-primary/90 transition-colors">
