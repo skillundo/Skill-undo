@@ -27,18 +27,18 @@ export default function ProfilePage() {
     if (file && user && auth.currentUser) {
       setUploadingPhoto(true);
       try {
+        // Validate storage bucket
+        if (!storage) {
+          throw new Error("Firebase Storage is not initialized on the client.");
+        }
+        console.log("Storage Bucket:", storage.app.options.storageBucket);
+
         // 1. ASYNC UPLOAD PIPELINE
         const fileRef = ref(storage, `avatars/${user.uid}`);
         
-        const uploadTask = async () => {
-          await uploadBytes(fileRef, file);
-          return await getDownloadURL(fileRef);
-        };
-        
-        const downloadURL = await Promise.race([
-          uploadTask(),
-          new Promise<string>((_, reject) => setTimeout(() => reject(new Error("Firebase Storage connection timed out. Please click 'Get Started' under the Storage tab in your Firebase Console to enable image uploads.")), 15000))
-        ]);
+        // Wait completely for the upload to finish without Promise.race masking
+        await uploadBytes(fileRef, file);
+        const downloadURL = await getDownloadURL(fileRef);
         
         // Update Auth Profile
         await updateProfile(auth.currentUser, { photoURL: downloadURL });
@@ -51,9 +51,10 @@ export default function ProfilePage() {
         // Update Local UI State
         setProfile(prev => prev ? { ...prev, avatarUrl: downloadURL } : { avatarUrl: downloadURL });
         
-      } catch (err: unknown) {
-        console.error("Error uploading photo:", err);
-        alert("Failed to upload photo: " + ((err as Error).message || "Unknown error"));
+      } catch (err: any) {
+        console.error("Firebase Upload Error:", err);
+        const errorMessage = err.code || err.message || "Unknown error";
+        alert(`Failed to upload photo: ${errorMessage}`);
       } finally {
         setUploadingPhoto(false);
       }
