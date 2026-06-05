@@ -3,8 +3,8 @@
 import { useMemo, useState } from "react";
 import { PortfolioPost, FeedGig } from "@/components/feed/PortfolioPost";
 import { SuggestedSellers } from "@/components/feed/SuggestedSellers";
-import { MOCK_USERS } from "@/lib/mock-data";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { UserProfile } from "@/lib/mock-data"; // Just for type if needed later, but actually we only need it if we define a state
 
 const CATEGORIES = {
   Engineering: ["Next.js", "React", "TypeScript", "Node.js", "PostgreSQL", "API"],
@@ -16,39 +16,14 @@ type SortOption = "Relevant" | "Newest" | "Top Rated" | "Price: Low to High" | "
 
 export default function DashboardFeed() {
   const { user } = useAuth();
-  const effectiveUid = user?.uid === "mock-uid-123" ? "u1" : user?.uid;
-  const currentUser = MOCK_USERS.find(u => u.id === effectiveUid);
+  const effectiveUid = user?.uid;
+  const currentUser: UserProfile | undefined = undefined;
 
-  // Generate mock feed gigs from the users' portfolios
+  // Placeholder for real feed gigs fetching
   const feedPosts: FeedGig[] = useMemo(() => {
-    const posts: FeedGig[] = [];
-    
-    MOCK_USERS.forEach((u) => {
-      if (u.id === effectiveUid) return;
-      
-      let primaryCategory = "Other";
-      for (const [catName, catSkills] of Object.entries(CATEGORIES)) {
-        if (u.skills.some(s => catSkills.includes(s))) {
-          primaryCategory = catName;
-          break;
-        }
-      }
-      
-      u.portfolio.forEach((imgUrl, index) => {
-        posts.push({
-          id: `${u.id}-gig-${index}`,
-          user: u,
-          imageUrl: imgUrl,
-          title: `${u.skills[0] || "Custom"} Services`,
-          price: ((u.id.charCodeAt(0) + index) * 499) % 4000 + 1000,
-          expertise: u.rating > 4.8 ? "Expert Level" : "Intermediate",
-          category: primaryCategory,
-        });
-      });
-    });
-
-    return posts;
+    return [];
   }, [effectiveUid]);
+
 
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>("Relevant");

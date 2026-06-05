@@ -1,6 +1,6 @@
 "use client";
 
-import { MOCK_PROJECTS } from "@/lib/mock-data";
+import { Project } from "@/lib/mock-data";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import Link from "next/link";
@@ -9,12 +9,11 @@ import { useAuth } from "@/components/auth/AuthProvider";
 
 export function Sidebar() {
   const { user } = useAuth();
+  const effectiveUid = user?.uid;
   
-  // For demo purposes, if user is mock-uid-123 we show u1's projects, otherwise just match uid.
-  const effectiveUid = user?.uid === "mock-uid-123" ? "u1" : user?.uid;
-  
-  const hiredByMe = MOCK_PROJECTS.filter((p) => p.client.id === effectiveUid);
-  const myGigs = MOCK_PROJECTS.filter((p) => p.worker.id === effectiveUid);
+  // Placeholder for real projects fetching
+  const hiredByMe: Project[] = [];
+  const myGigs: Project[] = [];
 
   return (
     <aside className="w-80 border-l border-black/10 dark:border-white/10 bg-white/50 dark:bg-black/50 hidden lg:block sticky top-16 h-[calc(100vh-4rem)]">

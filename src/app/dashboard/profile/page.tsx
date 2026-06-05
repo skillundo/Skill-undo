@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/components/auth/AuthProvider";
-import { MOCK_PROJECTS } from "@/lib/mock-data";
+import { Project } from "@/lib/mock-data";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { User, MapPin, Briefcase, Star, Clock, CheckCircle2 } from "lucide-react";
@@ -11,13 +11,9 @@ import { motion } from "framer-motion";
 export default function DashboardProfileView() {
   const { user } = useAuth();
   
-  // For demo purposes, we map the local user to a mock user ID if needed, 
-  // or just use their UID to match projects.
-  const effectiveUid = user?.uid === "mock-uid-123" ? "u1" : user?.uid || "u1";
-
-  // Filter projects for the current user
-  const hiredByMe = MOCK_PROJECTS.filter((p) => p.client.id === effectiveUid);
-  const myGigs = MOCK_PROJECTS.filter((p) => p.worker.id === effectiveUid);
+  // Placeholder for real projects fetching
+  const hiredByMe: Project[] = [];
+  const myGigs: Project[] = [];
 
   return (
     <div className="w-full max-w-4xl mx-auto py-8 px-4 sm:px-8">
