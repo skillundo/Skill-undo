@@ -4,7 +4,7 @@ import { useState } from "react";
 import { MOCK_MESSAGES, MOCK_PROJECTS, MOCK_USERS } from "@/lib/mock-data";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, Send } from "lucide-react";
+import { User, Send, MessageSquare } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 export default function MessagesPage() {
