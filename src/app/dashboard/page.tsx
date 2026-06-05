@@ -50,7 +50,7 @@ export default function DashboardFeed() {
 
   // Calculate matching skills for the banner
   const matchingSkillsCount = useMemo(() => {
-    if (!currentUser) return 0;
+    if (!currentUser || !currentUser.skills) return 0;
     return feedPosts.filter(p => p.user.skills.some(s => currentUser.skills.includes(s))).length;
   }, [feedPosts, currentUser]);
 
