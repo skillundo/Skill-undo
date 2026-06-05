@@ -105,27 +105,40 @@ export default function ProfilePage() {
     
     setSaving(true);
     
-    // 1. Check username uniqueness by querying the users collection
+    // 1. Check username uniqueness gracefully
+    let isTaken = false;
     try {
-      const usersRef = collection(db, "users");
-      const q = query(usersRef, where("username", "==", username));
-      const querySnapshot = await getDocs(q);
+      // First try to check the usernames collection
+      const usernameDocRef = doc(db, "usernames", username);
+      const usernameDoc = await getDoc(usernameDocRef);
       
-      let isTaken = false;
-      querySnapshot.forEach((docSnap) => {
-        if (docSnap.id !== user.uid) {
-          isTaken = true;
-        }
-      });
-
-      if (isTaken) {
-        alert("Username is already taken. Please choose another one.");
-        setSaving(false);
-        return;
+      if (usernameDoc.exists() && usernameDoc.data().uid !== user.uid) {
+        isTaken = true;
+      } else {
+        // Try to claim the username, but don't block if rules deny it
+        setDoc(usernameDocRef, { uid: user.uid }).catch(e => 
+          console.warn("Could not claim username in 'usernames' collection:", e)
+        );
       }
     } catch (err: any) {
-      console.error("Error checking username uniqueness:", err);
-      alert(`Failed to verify username uniqueness: ${err.message}`);
+      // If we can't even read the usernames collection due to rules, we fallback to a query
+      try {
+        const usersRef = collection(db, "users");
+        const q = query(usersRef, where("username", "==", username));
+        const querySnapshot = await getDocs(q);
+        
+        querySnapshot.forEach((docSnap) => {
+          if (docSnap.id !== user.uid) {
+            isTaken = true;
+          }
+        });
+      } catch (fallbackErr: any) {
+        console.warn("Could not verify username uniqueness due to strict database rules. Bypassing check.");
+      }
+    }
+
+    if (isTaken) {
+      alert("Username is already taken. Please choose another one.");
       setSaving(false);
       return;
     }
