@@ -6,18 +6,33 @@ import { SuggestedSellers } from "@/components/feed/SuggestedSellers";
 import { MOCK_USERS } from "@/lib/mock-data";
 import { useAuth } from "@/components/auth/AuthProvider";
 
+const CATEGORIES = {
+  Engineering: ["Next.js", "React", "TypeScript", "Node.js", "PostgreSQL", "API"],
+  Design: ["Figma", "UI/UX", "Tailwind"],
+  Writing: ["Copywriting", "SEO", "Content"],
+};
+
+type SortOption = "Relevant" | "Newest" | "Top Rated" | "Price: Low to High" | "Price: High to Low";
+
 export default function DashboardFeed() {
   const { user } = useAuth();
-  
   const effectiveUid = user?.uid === "mock-uid-123" ? "u1" : user?.uid;
+  const currentUser = MOCK_USERS.find(u => u.id === effectiveUid);
 
   // Generate mock feed gigs from the users' portfolios
   const feedPosts: FeedGig[] = useMemo(() => {
     const posts: FeedGig[] = [];
     
     MOCK_USERS.forEach((u) => {
-      // Don't show the current user's own gigs in the main discover feed
       if (u.id === effectiveUid) return;
+      
+      let primaryCategory = "Other";
+      for (const [catName, catSkills] of Object.entries(CATEGORIES)) {
+        if (u.skills.some(s => catSkills.includes(s))) {
+          primaryCategory = catName;
+          break;
+        }
+      }
       
       u.portfolio.forEach((imgUrl, index) => {
         posts.push({
@@ -27,72 +42,127 @@ export default function DashboardFeed() {
           title: `${u.skills[0] || "Custom"} Services`,
           price: ((u.id.charCodeAt(0) + index) * 499) % 4000 + 1000,
           expertise: u.rating > 4.8 ? "Expert Level" : "Intermediate",
+          category: primaryCategory,
         });
       });
     });
 
-    // Sort the posts deterministically to avoid hydration mismatch
-    return posts.sort((a, b) => a.id.localeCompare(b.id));
+    return posts;
   }, [effectiveUid]);
 
-  const [activeFilter, setActiveFilter] = useState<string | null>(null);
-
-  const allSkills = useMemo(() => {
-    const skills = new Set<string>();
-    feedPosts.forEach(post => post.user.skills.forEach(s => skills.add(s)));
-    return Array.from(skills);
-  }, [feedPosts]);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<SortOption>("Relevant");
 
   const displayedPosts = useMemo(() => {
-    if (!activeFilter) return feedPosts;
-    return feedPosts.filter(post => post.user.skills.includes(activeFilter));
-  }, [feedPosts, activeFilter]);
+    let filtered = feedPosts;
+
+    if (activeCategory) {
+      const categorySkills = CATEGORIES[activeCategory as keyof typeof CATEGORIES];
+      filtered = filtered.filter(post => post.user.skills.some(s => categorySkills.includes(s)));
+    }
+
+    return [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case "Price: Low to High": return a.price - b.price;
+        case "Price: High to Low": return b.price - a.price;
+        case "Top Rated": return (b.user.rating || 0) - (a.user.rating || 0);
+        case "Newest": return b.id.localeCompare(a.id);
+        case "Relevant":
+        default: return a.id.localeCompare(b.id);
+      }
+    });
+  }, [feedPosts, activeCategory, sortBy]);
+
+  // Calculate matching skills for the banner
+  const matchingSkillsCount = useMemo(() => {
+    if (!currentUser) return 0;
+    return feedPosts.filter(p => p.user.skills.some(s => currentUser.skills.includes(s))).length;
+  }, [feedPosts, currentUser]);
 
   return (
-    <div className="py-8 px-4 w-full max-w-5xl mx-auto flex justify-center gap-12">
-      {/* Main Feed Column */}
-      <div className="flex-1 max-w-xl w-full">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold tracking-tight">Explore Portfolios</h1>
-          <p className="text-muted-foreground text-sm mt-1">Discover top student talent and their best work.</p>
+    <div className="py-8 px-6 w-full max-w-[1600px] mx-auto flex flex-col xl:flex-row gap-8">
+      {/* Main Content Area */}
+      <div className="flex-1 min-w-0">
+        
+        {/* Personalized Banner */}
+        <div className="mb-8 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-2xl p-5 flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+              <span>🎯</span> {matchingSkillsCount > 0 ? `${matchingSkillsCount} gigs match your profile` : "Discover top campus talent"}
+            </h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              {currentUser ? `We found several students offering skills related to your interests in ${currentUser.college}.` : "Sign in to see personalized matches from your batchmates."}
+            </p>
+          </div>
+          <button className="hidden sm:block px-4 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-lg shadow-sm hover:bg-primary/90 transition-colors">
+            View Matches
+          </button>
         </div>
 
-        {/* Filters */}
-        {allSkills.length > 0 && (
-          <div className="flex gap-2 overflow-x-auto pb-4 mb-4 no-scrollbar scroll-smooth">
+        {/* Header Section */}
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold tracking-tight mb-2">Explore Services</h1>
+          <p className="text-muted-foreground text-base">Find the perfect student talent for your project.</p>
+        </div>
+
+        {/* Controls Bar */}
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
+          {/* Category Chips */}
+          <div className="flex gap-2 overflow-x-auto no-scrollbar max-w-full pb-2 md:pb-0">
             <button
-              onClick={() => setActiveFilter(null)}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${!activeFilter ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/80'}`}
+              onClick={() => setActiveCategory(null)}
+              className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${!activeCategory ? 'bg-primary text-primary-foreground shadow-md' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}
             >
-              All
+              All Categories
             </button>
-            {allSkills.map(skill => (
+            {Object.keys(CATEGORIES).map(cat => (
               <button
-                key={skill}
-                onClick={() => setActiveFilter(skill)}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${activeFilter === skill ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/80'}`}
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-colors ${activeCategory === cat ? 'bg-primary text-primary-foreground shadow-md' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}
               >
-                {skill}
+                {cat}
               </button>
             ))}
           </div>
-        )}
 
-        <div className="flex flex-col gap-6">
-          {displayedPosts.length > 0 ? (
-            displayedPosts.map((post) => (
-              <PortfolioPost key={post.id} post={post} />
-            ))
-          ) : (
-            <div className="py-12 text-center text-muted-foreground bg-card border border-border rounded-xl w-full">
-              No portfolios found for this skill.
-            </div>
-          )}
+          {/* Sort Dropdown */}
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="text-sm font-medium text-muted-foreground">Sort by:</span>
+            <select 
+              className="bg-transparent border border-border rounded-lg px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-primary outline-none cursor-pointer hover:bg-muted/50 transition-colors"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as SortOption)}
+            >
+              <option value="Relevant">Relevant</option>
+              <option value="Newest">Newest Arrivals</option>
+              <option value="Top Rated">Top Rated</option>
+              <option value="Price: Low to High">Price: Low to High</option>
+              <option value="Price: High to Low">Price: High to Low</option>
+            </select>
+          </div>
         </div>
+
+        {/* Grid Feed */}
+        {displayedPosts.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
+            {displayedPosts.map((post) => (
+              <PortfolioPost key={post.id} post={post} />
+            ))}
+          </div>
+        ) : (
+          <div className="py-24 flex flex-col items-center justify-center text-center bg-muted/30 border border-border/50 rounded-2xl w-full">
+            <div className="h-16 w-16 mb-4 rounded-full bg-muted flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            </div>
+            <h3 className="text-lg font-bold mb-1">No services found</h3>
+            <p className="text-muted-foreground">Try selecting a different category.</p>
+          </div>
+        )}
       </div>
 
-      {/* Suggested Sellers Sidebar */}
-      <div className="hidden lg:block w-80 shrink-0 pt-4">
+      {/* Right Sidebar (Social/Trending) */}
+      <div className="hidden xl:block w-80 shrink-0">
         <SuggestedSellers />
       </div>
     </div>

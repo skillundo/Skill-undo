@@ -1,5 +1,5 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, MapPin, Briefcase } from "lucide-react";
+import { User, Star, Heart, BadgeCheck } from "lucide-react";
 import Link from "next/link";
 import { UserProfile } from "@/lib/mock-data";
 
@@ -10,103 +10,94 @@ export interface FeedGig {
   title: string;
   price: number;
   expertise: string;
+  category: string;
 }
 
 interface PortfolioPostProps {
   post: FeedGig;
 }
 
-export function PortfolioPost({ post }: PortfolioPostProps) {
-  return (
-    <article className="max-w-xl mx-auto mb-10 bg-card border border-border rounded-xl shadow-sm overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-border/50">
-        <Link href={`/profile/${post.user.id}`} className="flex items-center gap-3 group">
-          <Avatar className="h-10 w-10 border border-border">
-            <AvatarImage src={post.user.avatarUrl} alt={post.user.username} />
-            <AvatarFallback><User className="h-5 w-5" /></AvatarFallback>
-          </Avatar>
-          <div>
-            <h3 className="font-semibold text-sm group-hover:underline">{post.user.username}</h3>
-            <p className="text-xs text-muted-foreground flex items-center gap-1">
-              <MapPin className="h-3 w-3" /> {post.user.college}
-            </p>
-          </div>
-        </Link>
-        <button className="text-muted-foreground hover:text-foreground">
-          <MoreHorizontalIcon className="h-5 w-5" />
-        </button>
-      </div>
+const CATEGORY_COLORS: Record<string, string> = {
+  Engineering: "bg-blue-500/90 text-white",
+  Design: "bg-pink-500/90 text-white",
+  Writing: "bg-emerald-500/90 text-white",
+  Other: "bg-zinc-800/90 text-white dark:bg-zinc-200/90 dark:text-black",
+};
 
-      {/* Visual Content */}
-      <div className="w-full aspect-square bg-muted relative overflow-hidden">
+export function PortfolioPost({ post }: PortfolioPostProps) {
+  const categoryColor = CATEGORY_COLORS[post.category] || CATEGORY_COLORS.Other;
+  
+  return (
+    <div className="flex flex-col bg-card border border-border hover:shadow-lg hover:-translate-y-1 transition-all duration-300 rounded-xl overflow-hidden group">
+      {/* Image Thumbnail */}
+      <Link href={`/profile/${post.user.id}`} className="block relative aspect-[4/3] w-full overflow-hidden bg-muted">
         <img 
           src={post.imageUrl} 
           alt={post.title}
-          className="object-cover w-full h-full hover:scale-105 transition-transform duration-500"
+          className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-110"
         />
-      </div>
+        {/* Category Badge */}
+        <div className={`absolute top-3 left-3 px-2.5 py-1 backdrop-blur-md rounded-md text-[10px] font-bold uppercase tracking-wider shadow-sm ${categoryColor}`}>
+          {post.category}
+        </div>
+        {/* Heart Icon (Mock Save) */}
+        <button className="absolute top-3 right-3 p-1.5 rounded-full bg-black/20 hover:bg-black/40 text-white backdrop-blur-md transition-colors" onClick={(e) => e.preventDefault()}>
+          <Heart className="h-4 w-4" />
+        </button>
+      </Link>
 
-      {/* Details & Actions */}
-      <div className="p-4">
-        <div className="flex items-center justify-between mb-4">
-          <Link 
-            href={`/dashboard/messages?to=${post.user.id}`}
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground h-9 px-4 py-2 hover:bg-primary/90 transition-colors w-full sm:w-auto"
-          >
-            Send Enquiry
+      {/* Card Content */}
+      <div className="p-4 flex flex-col flex-1">
+        {/* Seller Info */}
+        <div className="flex items-center gap-2 mb-3">
+          <Link href={`/profile/${post.user.id}`}>
+            <Avatar className="h-6 w-6 border border-border">
+              <AvatarImage src={post.user.avatarUrl} alt={post.user.username} />
+              <AvatarFallback><User className="h-3 w-3" /></AvatarFallback>
+            </Avatar>
           </Link>
-          <Link 
-            href={`/profile/${post.user.id}`}
-            className="text-sm font-medium text-primary hover:underline hidden sm:block"
-          >
-            View Full Portfolio
-          </Link>
+          <div className="flex flex-col">
+            <Link href={`/profile/${post.user.id}`} className="flex items-center gap-1 group/name">
+              <span className="text-sm font-semibold group-hover/name:underline leading-none">{post.user.username}</span>
+              <BadgeCheck className="h-3.5 w-3.5 text-blue-500 fill-blue-500/20" aria-label="Verified Student" />
+            </Link>
+            <span className="text-[10px] text-muted-foreground mt-0.5">
+              {post.expertise === "Expert Level" ? "Top Rated Seller" : "Level 1 Seller"}
+            </span>
+          </div>
         </div>
 
-        <div className="space-y-1">
-          <div className="flex items-center justify-between">
-            <h2 className="font-bold text-base">{post.title}</h2>
-            <span className="font-mono font-medium text-sm">₹{post.price}</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Briefcase className="h-3.5 w-3.5" />
-            <span>{post.expertise}</span>
-          </div>
-          <p className="text-sm mt-2">
-            <span className="font-semibold mr-2">{post.user.username}</span>
-            Offering high-quality services for {post.title.toLowerCase()}. I have extensive experience and can deliver great results quickly.
-          </p>
-          <div className="flex flex-wrap gap-1 mt-3">
-            {post.user.skills.slice(0, 3).map(skill => (
-              <span key={skill} className="text-xs font-medium text-blue-500 dark:text-blue-400 cursor-pointer hover:underline">
-                #{skill.toLowerCase().replace(/\s+/g, '')}
-              </span>
-            ))}
+        {/* Gig Title */}
+        <Link href={`/profile/${post.user.id}`} className="block mb-3">
+          <h3 className="font-medium text-sm leading-snug line-clamp-2 group-hover:text-primary transition-colors">
+            I will provide high-quality {post.title.toLowerCase()} tailored to your needs
+          </h3>
+        </Link>
+
+        {/* Rating */}
+        <div className="flex items-center gap-1.5 mt-auto mb-4">
+          <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+          <span className="font-bold text-sm">{(post.user.rating || 5.0).toFixed(1)}</span>
+          <span className="text-muted-foreground text-sm">
+            ({post.user.completedJobs || Math.floor(Math.random() * 50) + 5})
+          </span>
+        </div>
+
+        {/* Footer: Price */}
+        <div className="pt-3 border-t border-border/50 flex items-center justify-between">
+          <button className="text-muted-foreground hover:text-primary transition-colors p-1" title="Options">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+          </button>
+          <div className="text-right">
+            <span className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wider block leading-none mb-1">
+              Starting at
+            </span>
+            <span className="text-lg font-bold leading-none">
+              ₹{post.price}
+            </span>
           </div>
         </div>
       </div>
-    </article>
-  );
-}
-
-function MoreHorizontalIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="12" cy="12" r="1" />
-      <circle cx="19" cy="12" r="1" />
-      <circle cx="5" cy="12" r="1" />
-    </svg>
+    </div>
   );
 }

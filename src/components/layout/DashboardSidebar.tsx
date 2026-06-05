@@ -25,7 +25,6 @@ export function DashboardSidebar() {
     { icon: Search, label: "Search", href: "#search", isAction: true },
     { icon: Compass, label: "Explore", href: "/dashboard" },
     { icon: MessageSquare, label: "Messages", href: "/dashboard/messages", badge: 2 },
-    { icon: PlusSquare, label: "Create Gig", href: "/workspace/new" },
   ];
 
   return (
@@ -34,6 +33,17 @@ export function DashboardSidebar() {
       <div className="h-20 flex items-center px-6 pt-4 mb-4">
         <Link href="/" className="flex items-center gap-2">
           <span className="text-xl font-bold tracking-tighter">SKILLUNDO</span>
+        </Link>
+      </div>
+
+      {/* Prominent CTA */}
+      <div className="px-4 mb-6">
+        <Link 
+          href="/workspace/new" 
+          className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground p-3 rounded-xl hover:bg-primary/90 transition-all shadow-md hover:shadow-lg group"
+        >
+          <PlusSquare className="h-5 w-5 group-hover:scale-110 transition-transform" />
+          <span className="hidden xl:block font-bold">List a Skill</span>
         </Link>
       </div>
 
