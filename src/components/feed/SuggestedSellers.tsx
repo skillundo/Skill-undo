@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/components/auth/AuthProvider";
+import { MOCK_USERS } from "@/lib/mock-data";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, Flame, GraduationCap, TrendingUp } from "lucide-react";
 import Link from "next/link";
@@ -8,11 +9,38 @@ import { useMemo } from "react";
 
 export function SuggestedSellers() {
   const { user } = useAuth();
+  const effectiveUid = user?.uid === "mock-uid-123" ? "u1" : user?.uid || "u1";
 
   const suggestedUsers = useMemo(() => {
-    // TODO: Fetch real suggested users
-    return [];
-  }, []);
+    const currentUser = MOCK_USERS.find(u => u.id === effectiveUid);
+    
+    // Deterministically mock year and department based on user ID
+    const getMockDept = (id: string) => {
+      const depts = ["Computer Science", "Design", "Business", "Communications"];
+      return depts[(id.charCodeAt(0) + id.charCodeAt(1)) % depts.length];
+    };
+    
+    const getMockYear = (id: string) => {
+      const years = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
+      return years[(id.charCodeAt(id.length - 1)) % years.length];
+    };
+
+    if (!currentUser) {
+      return MOCK_USERS.slice(0, 5)
+        .filter(u => u.id !== effectiveUid)
+        .map(u => ({ user: u, year: getMockYear(u.id), dept: getMockDept(u.id), score: 0 }));
+    }
+
+    const scoredUsers = MOCK_USERS.filter(u => u.id !== effectiveUid).map(u => {
+      let score = 0;
+      if (u.college === currentUser.college) score += 2;
+      else if (u.locality === currentUser.locality) score += 1;
+
+      return { user: u, score, year: getMockYear(u.id), dept: getMockDept(u.id) };
+    });
+
+    return scoredUsers.sort((a, b) => b.score - a.score).slice(0, 5);
+  }, [effectiveUid]);
 
   return (
     <div className="w-full sticky top-8 space-y-8">

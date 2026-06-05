@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { MOCK_MESSAGES, MOCK_PROJECTS, MOCK_USERS } from "@/lib/mock-data";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, Send, MessageSquare } from "lucide-react";
@@ -8,9 +9,19 @@ import { Input } from "@/components/ui/input";
 
 export default function MessagesPage() {
   const { user } = useAuth();
+  const effectiveUid = user?.uid === "mock-uid-123" ? "u1" : user?.uid || "u1";
 
-  // TODO: Fetch real threads
-  const threads: any[] = [];
+  // Group messages by projectId
+  const threads = MOCK_PROJECTS.map(project => {
+    const projectMsgs = MOCK_MESSAGES.filter(m => m.projectId === project.id);
+    const otherUser = project.client.id === effectiveUid ? project.worker : project.client;
+    
+    return {
+      project,
+      otherUser,
+      messages: projectMsgs.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()),
+    };
+  }).filter(t => t.messages.length > 0 || t.project.client.id === effectiveUid || t.project.worker.id === effectiveUid);
 
   const [activeThreadId, setActiveThreadId] = useState<string | null>(threads[0]?.project.id || null);
   const [newMessage, setNewMessage] = useState("");
