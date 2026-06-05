@@ -26,14 +26,25 @@ export default function ProfilePage() {
       setSaving(true);
       try {
         const fileRef = ref(storage, `avatars/${user.uid}`);
-        const snapshot = await uploadBytes(fileRef, file);
-        const downloadURL = await getDownloadURL(snapshot.ref);
+        
+        const uploadTask = async () => {
+          const snapshot = await uploadBytes(fileRef, file);
+          return await getDownloadURL(snapshot.ref);
+        };
+
+        const downloadURL = await Promise.race([
+          uploadTask(),
+          new Promise<string>((_, reject) => setTimeout(() => reject(new Error("Storage connection timed out. Please ensure you have clicked 'Get Started' under Storage in your Firebase Console.")), 15000))
+        ]);
         
         await updateProfile(auth.currentUser, { photoURL: downloadURL });
         setUser({ ...user, photoURL: downloadURL });
         setProfile(prev => prev ? { ...prev, avatarUrl: downloadURL } : { avatarUrl: downloadURL });
-      } catch (err) {
+        
+        alert("Profile photo uploaded successfully!");
+      } catch (err: unknown) {
         console.error("Error uploading photo:", err);
+        alert("Failed to upload photo: " + ((err as Error).message || "Unknown error"));
       } finally {
         setSaving(false);
       }
