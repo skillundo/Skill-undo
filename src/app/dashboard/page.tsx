@@ -50,9 +50,8 @@ export default function DashboardFeed() {
 
   // Calculate matching skills for the banner
   const matchingSkillsCount = useMemo(() => {
-    if (!currentUser || !currentUser.skills) return 0;
-    return feedPosts.filter(p => p.user.skills.some(s => currentUser.skills.includes(s))).length;
-  }, [feedPosts, currentUser]);
+    return 0;
+  }, []);
 
   return (
     <div className="py-8 px-6 w-full max-w-[1600px] mx-auto flex flex-col xl:flex-row gap-8">
