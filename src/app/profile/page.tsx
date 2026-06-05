@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { auth, db, storage } from "@/lib/firebase";
-import { updateProfile } from "firebase/auth";
+import { updateProfile, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { Sidebar } from "@/components/layout/Sidebar";
@@ -63,10 +63,12 @@ export default function ProfilePage() {
 
   useEffect(() => {
     let isMounted = true;
-    async function loadProfile() {
-      if (user?.uid) {
+    
+    // 3. Strictly gate the fetch behind the Firebase auth state listener
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
         try {
-          const docRef = doc(db, "users", user.uid);
+          const docRef = doc(db, "users", firebaseUser.uid);
           const docSnap = await getDoc(docRef);
           if (docSnap.exists() && isMounted) {
             setProfile(docSnap.data() as Partial<UserProfile>);
@@ -74,18 +76,19 @@ export default function ProfilePage() {
         } catch (err) {
           console.error("Error loading profile:", err);
         }
+        // Auth resolved and data fetched
+        if (isMounted) setLoading(false);
+      } else {
+        // Auth resolved but no user logged in
+        if (isMounted) setLoading(false);
       }
-      if (isMounted) setLoading(false);
-    }
+    });
     
-    if (user?.uid) {
-      loadProfile();
-    } else if (user === null) {
-      if (isMounted) setLoading(false);
-    }
-    
-    return () => { isMounted = false; };
-  }, [user?.uid]);
+    return () => { 
+      isMounted = false;
+      unsubscribe(); // Cleanup listener
+    };
+  }, []);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
