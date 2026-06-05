@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { mockFirestore, mockFirebaseAuth } from "@/lib/firebase";
+import { auth, db, storage } from "@/lib/firebase";
+import { updateProfile } from "firebase/auth";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Input } from "@/components/ui/input";
 import { Loader2, User, Upload } from "lucide-react";
@@ -17,25 +20,38 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && user) {
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64String = reader.result as string;
-        await mockFirebaseAuth.updateProfile({ photoURL: base64String });
-        setUser({ ...user, photoURL: base64String });
-        setProfile(prev => prev ? { ...prev, avatarUrl: base64String } : { avatarUrl: base64String });
-      };
-      reader.readAsDataURL(file);
+    if (file && user && auth.currentUser) {
+      setSaving(true);
+      try {
+        const fileRef = ref(storage, `avatars/${user.uid}`);
+        const snapshot = await uploadBytes(fileRef, file);
+        const downloadURL = await getDownloadURL(snapshot.ref);
+        
+        await updateProfile(auth.currentUser, { photoURL: downloadURL });
+        setUser({ ...user, photoURL: downloadURL });
+        setProfile(prev => prev ? { ...prev, avatarUrl: downloadURL } : { avatarUrl: downloadURL });
+      } catch (err) {
+        console.error("Error uploading photo:", err);
+      } finally {
+        setSaving(false);
+      }
     }
   };
 
   useEffect(() => {
     async function loadProfile() {
       if (user) {
-        const data = await mockFirestore.getUserProfile(user.uid);
-        setProfile(data);
+        try {
+          const docRef = doc(db, "users", user.uid);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            setProfile(docSnap.data() as Partial<UserProfile>);
+          }
+        } catch (err) {
+          console.error("Error loading profile:", err);
+        }
       }
       setLoading(false);
     }
@@ -48,10 +64,10 @@ export default function ProfilePage() {
     
     setSaving(true);
     try {
-      await mockFirestore.saveUserProfile(user.uid, profile);
-      // Show success toast or message here in a real app
+      const docRef = doc(db, "users", user.uid);
+      await setDoc(docRef, profile, { merge: true });
     } catch (err) {
-      console.error(err);
+      console.error("Error saving profile:", err);
     } finally {
       setSaving(false);
     }

@@ -5,7 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { Search, Compass, MessageSquare, PlusSquare, MoreHorizontal, LogOut, User, Settings } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { mockFirebaseAuth } from "@/lib/firebase";
+import { auth } from "@/lib/firebase";
+import { signOut } from "firebase/auth";
 import { useState } from "react";
 
 export function DashboardSidebar() {
@@ -16,7 +17,7 @@ export function DashboardSidebar() {
   const [showSearch, setShowSearch] = useState(false);
 
   const handleLogout = async () => {
-    await mockFirebaseAuth.signOut();
+    await signOut(auth);
     setUser(null);
     router.push("/");
   };

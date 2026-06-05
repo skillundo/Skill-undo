@@ -1,20 +1,61 @@
 "use client";
 
-import { useState } from "react";
-import { useAuth } from "@/components/auth/AuthProvider";
-import { mockFirebaseAuth } from "@/lib/firebase";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  signInWithPopup, 
+  GoogleAuthProvider, 
+  OAuthProvider, 
+  onAuthStateChanged 
+} from "firebase/auth";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { ShaderBackground } from "@/components/ui/shader-background";
 
 export default function AuthPage() {
-  const { setUser } = useAuth();
+  const router = useRouter();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Listen to Auth State and handle Firestore registration check & redirect
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        setLoading(true);
+        setError("");
+        try {
+          const userDocRef = doc(db, "users", currentUser.uid);
+          const userDoc = await getDoc(userDocRef);
+          
+          if (!userDoc.exists()) {
+            // New user: create an empty document to represent their marketplace profile
+            await setDoc(userDocRef, {
+              uid: currentUser.uid,
+              email: currentUser.email,
+              createdAt: new Date().toISOString(),
+            });
+          }
+          
+          router.push("/onboarding");
+        } catch (err: any) {
+          console.error("Firestore user verification error:", err);
+          setError(err.message || "Failed to verify or initialize user profile.");
+        } finally {
+          setLoading(false);
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,16 +69,27 @@ export default function AuthPage() {
     }
 
     try {
-      let user;
       if (isLogin) {
-        user = await mockFirebaseAuth.signInWithEmail(email, password);
+        await signInWithEmailAndPassword(auth, email, password);
       } else {
-        user = await mockFirebaseAuth.signUp(email, password);
+        await createUserWithEmailAndPassword(auth, email, password);
       }
-      setUser(user);
     } catch (err: any) {
-      setError(err.message || "An error occurred during authentication.");
-    } finally {
+      console.error("Auth error:", err);
+      // Clean up Firebase error messages for the user
+      let friendlyMessage = "An error occurred during authentication.";
+      if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password" || err.code === "auth/invalid-credential") {
+        friendlyMessage = "Invalid email or password.";
+      } else if (err.code === "auth/email-already-in-use") {
+        friendlyMessage = "This email is already in use.";
+      } else if (err.code === "auth/weak-password") {
+        friendlyMessage = "The password is too weak.";
+      } else if (err.code === "auth/invalid-email") {
+        friendlyMessage = "Please enter a valid email address.";
+      } else if (err.message) {
+        friendlyMessage = err.message;
+      }
+      setError(friendlyMessage);
       setLoading(false);
     }
   };
@@ -45,12 +97,12 @@ export default function AuthPage() {
   const handleGoogleAuth = async () => {
     setLoading(true);
     setError("");
+    const provider = new GoogleAuthProvider();
     try {
-      const user = await mockFirebaseAuth.signInWithGoogle();
-      setUser(user);
+      await signInWithPopup(auth, provider);
     } catch (err: any) {
+      console.error("Google Auth error:", err);
       setError(err.message || "An error occurred with Google Auth.");
-    } finally {
       setLoading(false);
     }
   };
@@ -58,12 +110,12 @@ export default function AuthPage() {
   const handleAppleAuth = async () => {
     setLoading(true);
     setError("");
+    const provider = new OAuthProvider("apple.com");
     try {
-      const user = await mockFirebaseAuth.signInWithApple();
-      setUser(user);
+      await signInWithPopup(auth, provider);
     } catch (err: any) {
+      console.error("Apple Auth error:", err);
       setError(err.message || "An error occurred with Apple Auth.");
-    } finally {
       setLoading(false);
     }
   };
@@ -96,6 +148,7 @@ export default function AuthPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              disabled={loading}
             />
           </div>
           <div className="space-y-2">
@@ -106,6 +159,7 @@ export default function AuthPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              disabled={loading}
             />
           </div>
 
@@ -160,8 +214,9 @@ export default function AuthPage() {
           {isLogin ? "Don't have an account? " : "Already have an account? "}
           <button 
             type="button"
+            disabled={loading}
             onClick={() => setIsLogin(!isLogin)} 
-            className="font-medium underline underline-offset-4 hover:text-primary"
+            className="font-medium underline underline-offset-4 hover:text-primary disabled:opacity-50"
           >
             {isLogin ? "Sign up" : "Sign in"}
           </button>

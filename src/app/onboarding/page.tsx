@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { mockFirestore } from "@/lib/firebase";
+import { db } from "@/lib/firebase";
+import { doc, setDoc } from "firebase/firestore";
 import { Input } from "@/components/ui/input";
 import { Loader2, Plus, X } from "lucide-react";
 import { ShaderBackground } from "@/components/ui/shader-background";
@@ -52,8 +53,10 @@ export default function OnboardingPage() {
     setLoading(true);
     
     try {
-      await mockFirestore.saveUserProfile(user.uid, {
-        username,
+      const userDocRef = doc(db, "users", user.uid);
+      await setDoc(userDocRef, {
+        fullName: name.trim(),
+        username: username.trim().toLowerCase(),
         avatarUrl: user.photoURL || null,
         skills: skills.map(s => s.name),
         rating: 0,
@@ -61,12 +64,19 @@ export default function OnboardingPage() {
         college: "Not specified",
         locality: "Not specified",
         portfolio: isSeller && portfolio ? [portfolio] : [],
-      });
+        hours: isSeller && hours ? hours : "",
+        isSeller,
+        updatedAt: new Date().toISOString(),
+      }, { merge: true });
+      
+      // Update local storage status
+      localStorage.setItem(`profile_complete_${user.uid}`, "true");
       
       await checkProfileCompleteness(user.uid);
       router.push("/dashboard");
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      setError(err.message || "An error occurred while completing setup.");
     } finally {
       setLoading(false);
     }

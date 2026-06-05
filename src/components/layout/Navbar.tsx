@@ -4,7 +4,8 @@ import { Search, Bell, LogOut, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { mockFirebaseAuth } from "@/lib/firebase";
+import { auth } from "@/lib/firebase";
+import { signOut } from "firebase/auth";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 
@@ -16,7 +17,7 @@ export function Navbar() {
   if (pathname.startsWith("/dashboard")) return null;
 
   const handleLogout = async () => {
-    await mockFirebaseAuth.signOut();
+    await signOut(auth);
     setUser(null);
     router.push("/");
   };
