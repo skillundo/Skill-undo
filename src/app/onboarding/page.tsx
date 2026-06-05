@@ -57,7 +57,7 @@ export default function OnboardingPage() {
       await setDoc(userDocRef, {
         fullName: name.trim(),
         username: username.trim().toLowerCase(),
-        avatarUrl: user.photoURL || null,
+        avatarUrl: user.photoURL || "",
         skills: skills.map(s => s.name),
         rating: 0,
         completedJobs: 0,
