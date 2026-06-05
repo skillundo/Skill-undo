@@ -19,35 +19,35 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<Partial<UserProfile> | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && user && auth.currentUser) {
-      setSaving(true);
+      setUploadingPhoto(true);
       try {
+        // 1. ASYNC UPLOAD PIPELINE
         const fileRef = ref(storage, `avatars/${user.uid}`);
+        await uploadBytes(fileRef, file); // Wait completely for the upload to finish
+        const downloadURL = await getDownloadURL(fileRef); // Only then grab the URL
         
-        const uploadTask = async () => {
-          const snapshot = await uploadBytes(fileRef, file);
-          return await getDownloadURL(snapshot.ref);
-        };
-
-        const downloadURL = await Promise.race([
-          uploadTask(),
-          new Promise<string>((_, reject) => setTimeout(() => reject(new Error("Storage connection timed out. Please ensure you have clicked 'Get Started' under Storage in your Firebase Console.")), 15000))
-        ]);
-        
+        // Update Auth Profile
         await updateProfile(auth.currentUser, { photoURL: downloadURL });
         setUser({ ...user, photoURL: downloadURL });
+        
+        // 2. DATABASE SYNC
+        const docRef = doc(db, "users", user.uid);
+        await setDoc(docRef, { avatarUrl: downloadURL }, { merge: true });
+        
+        // Update Local UI State
         setProfile(prev => prev ? { ...prev, avatarUrl: downloadURL } : { avatarUrl: downloadURL });
         
-        alert("Profile photo uploaded successfully!");
       } catch (err: unknown) {
         console.error("Error uploading photo:", err);
         alert("Failed to upload photo: " + ((err as Error).message || "Unknown error"));
       } finally {
-        setSaving(false);
+        setUploadingPhoto(false);
       }
     }
   };
@@ -138,11 +138,21 @@ export default function ProfilePage() {
                 />
                 <button 
                   type="button" 
+                  disabled={uploadingPhoto}
                   onClick={() => fileInputRef.current?.click()}
-                  className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 mt-2"
+                  className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border border-input bg-background hover:bg-accent hover:text-accent-foreground disabled:opacity-50 h-9 px-4 py-2 mt-2"
                 >
-                  <Upload className="mr-2 h-4 w-4" />
-                  Upload Photo
+                  {uploadingPhoto ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Uploading image...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="mr-2 h-4 w-4" />
+                      Upload Photo
+                    </>
+                  )}
                 </button>
               </div>
             </div>
