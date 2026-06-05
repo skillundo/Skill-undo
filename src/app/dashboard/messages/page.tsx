@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, Send, MessageSquare } from "lucide-react";
+import { User, Send, MessageSquare, ArrowLeft } from "lucide-react";
+import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Project, UserProfile, Message } from "@/lib/mock-data";
 
@@ -23,7 +24,10 @@ export default function MessagesPage() {
     <div className="flex h-[calc(100vh)] bg-card border-l border-border w-full max-w-6xl mx-auto">
       {/* Threads List */}
       <div className="w-1/3 min-w-[300px] border-r border-border flex flex-col">
-        <div className="p-4 border-b border-border font-bold text-xl h-20 flex items-center">
+        <div className="p-4 border-b border-border font-bold text-xl h-20 flex items-center gap-3">
+          <Link href="/dashboard" className="p-2 -ml-2 rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+             <ArrowLeft className="h-5 w-5" />
+          </Link>
           Messages
         </div>
         <div className="flex-1 overflow-y-auto">

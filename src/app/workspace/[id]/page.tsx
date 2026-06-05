@@ -16,7 +16,7 @@ export default function WorkspacePage({ params }: { params: Promise<{ id: string
     return (
       <div className="flex-1 flex items-center justify-center flex-col gap-4">
         <h2 className="text-2xl font-bold">Project not found</h2>
-        <Link href="/">
+        <Link href="/dashboard">
           <Button variant="outline">Go back to Dashboard</Button>
         </Link>
       </div>
@@ -34,7 +34,7 @@ export default function WorkspacePage({ params }: { params: Promise<{ id: string
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           
           <div className="flex items-center gap-4">
-            <Link href="/">
+            <Link href="/dashboard">
               <Button variant="ghost" size="icon" className="rounded-full hover:bg-black/5 dark:hover:bg-white/10">
                 <ArrowLeft className="w-5 h-5" />
               </Button>

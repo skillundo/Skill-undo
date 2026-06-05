@@ -8,10 +8,11 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Input } from "@/components/ui/input";
-import { Loader2, User, Upload } from "lucide-react";
+import { Loader2, User, Upload, ArrowLeft } from "lucide-react";
 import { UserProfile } from "@/lib/mock-data";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRef } from "react";
+import Link from "next/link";
 
 export default function ProfilePage() {
   const { user, setUser } = useAuth();
@@ -106,6 +107,10 @@ export default function ProfilePage() {
       <div className="flex-1 p-6 lg:p-10 bg-black/[0.01] dark:bg-white/[0.01] min-h-screen">
         <div className="max-w-2xl mx-auto space-y-8">
           <div>
+            <Link href="/dashboard" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground mb-4 transition-colors">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Dashboard
+            </Link>
             <h1 className="text-3xl font-bold tracking-tight">Edit Profile</h1>
             <p className="text-muted-foreground mt-2">Update your personal details and seller information.</p>
           </div>

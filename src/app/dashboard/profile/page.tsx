@@ -4,7 +4,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { Project } from "@/lib/mock-data";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { User, MapPin, Briefcase, Star, Clock, CheckCircle2 } from "lucide-react";
+import { User, MapPin, Briefcase, Star, Clock, CheckCircle2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
@@ -31,6 +31,10 @@ export default function DashboardProfileView() {
         
         <div className="flex-1 w-full space-y-6 z-10">
           <div>
+            <Link href="/dashboard" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground mb-4 transition-colors">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Dashboard
+            </Link>
             <h1 className="text-3xl font-bold tracking-tight">{user?.displayName || "Anonymous User"}</h1>
             <p className="text-muted-foreground">{user?.email}</p>
           </div>
