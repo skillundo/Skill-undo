@@ -110,7 +110,7 @@ export function DashboardSidebar() {
       <div className="relative p-4 mt-auto border-t border-border/50">
         {showProfileMenu && (
           <div className="absolute bottom-full left-4 mb-2 w-56 bg-card border border-border rounded-xl shadow-lg p-2 z-50 animate-in slide-in-from-bottom-2 fade-in-20">
-            <Link href="/profile" className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/80 text-sm font-medium transition-colors">
+            <Link href="/dashboard/profile" className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/80 text-sm font-medium transition-colors">
               <User className="h-4 w-4" /> View Profile
             </Link>
             <Link href="/profile" className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/80 text-sm font-medium transition-colors">
