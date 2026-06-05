@@ -13,6 +13,8 @@ export function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
 
+  if (pathname.startsWith("/dashboard")) return null;
+
   const handleLogout = async () => {
     await mockFirebaseAuth.signOut();
     setUser(null);
