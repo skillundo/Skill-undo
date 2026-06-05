@@ -26,7 +26,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const checkProfileCompleteness = async (uid: string) => {
     try {
       const profile = await mockFirestore.getUserProfile(uid);
-      const isComplete = !!(profile && profile.username && profile.skills && profile.skills.length > 0);
+      const isComplete = !!(profile && profile.username);
       setIsProfileComplete(isComplete);
       
       // Store completeness in localStorage for mock persistence
@@ -43,6 +43,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const savedSession = localStorage.getItem("mock_session");
     if (savedSession) {
       const parsedUser = JSON.parse(savedSession) as AuthUser;
+      
+      // Clear out any legacy mock avatar URLs
+      if (parsedUser.photoURL?.includes("pravatar.cc")) {
+        parsedUser.photoURL = null;
+      }
+      
       setUserState(parsedUser); // use internal state setter
       
       const isComplete = localStorage.getItem(`profile_complete_${parsedUser.uid}`) === "true";

@@ -54,7 +54,7 @@ export default function OnboardingPage() {
     try {
       await mockFirestore.saveUserProfile(user.uid, {
         username,
-        avatarUrl: user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`,
+        avatarUrl: user.photoURL || null,
         skills: skills.map(s => s.name),
         rating: 0,
         completedJobs: 0,
@@ -182,10 +182,9 @@ export default function OnboardingPage() {
               </button>
               <button 
                 onClick={() => setStep(3)}
-                disabled={skills.length === 0}
                 className="w-full inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground h-10 px-4 py-2 disabled:opacity-50"
               >
-                Continue
+                {skills.length === 0 ? "Skip for now" : "Continue"}
               </button>
             </div>
           </div>

@@ -2,17 +2,34 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { mockFirestore } from "@/lib/firebase";
+import { mockFirestore, mockFirebaseAuth } from "@/lib/firebase";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Input } from "@/components/ui/input";
-import { Loader2 } from "lucide-react";
+import { Loader2, User, Upload } from "lucide-react";
 import { UserProfile } from "@/lib/mock-data";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useRef } from "react";
 
 export default function ProfilePage() {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const [profile, setProfile] = useState<Partial<UserProfile> | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && user) {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64String = reader.result as string;
+        await mockFirebaseAuth.updateProfile({ photoURL: base64String });
+        setUser({ ...user, photoURL: base64String });
+        setProfile(prev => prev ? { ...prev, avatarUrl: base64String } : { avatarUrl: base64String });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   useEffect(() => {
     async function loadProfile() {
@@ -59,6 +76,37 @@ export default function ProfilePage() {
           </div>
 
           <form onSubmit={handleSave} className="space-y-8 bg-white dark:bg-black p-8 rounded-2xl border border-border/50">
+            {/* Profile Photo */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 pb-6 border-b">
+              <Avatar className="h-24 w-24 border border-border">
+                <AvatarImage src={user?.photoURL || ""} alt={user?.displayName || "User"} />
+                <AvatarFallback className="bg-[#DFE5E7] dark:bg-gray-800 flex items-center justify-center overflow-hidden">
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="h-[120%] w-[120%] text-white dark:text-gray-600 mt-6">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                  </svg>
+                </AvatarFallback>
+              </Avatar>
+              <div className="space-y-2">
+                <h3 className="text-lg font-medium">Profile Photo</h3>
+                <p className="text-sm text-muted-foreground">We recommend an image of at least 300x300. Gifs work too.</p>
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  className="hidden" 
+                  ref={fileInputRef}
+                  onChange={handlePhotoUpload}
+                />
+                <button 
+                  type="button" 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2 mt-2"
+                >
+                  <Upload className="mr-2 h-4 w-4" />
+                  Upload Photo
+                </button>
+              </div>
+            </div>
+
             {/* Basic Info */}
             <div className="space-y-4">
               <h2 className="text-xl font-semibold">Basic Information</h2>

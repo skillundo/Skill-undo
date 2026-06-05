@@ -23,7 +23,7 @@ export const mockFirebaseAuth = {
       uid: "mock-uid-123",
       email,
       displayName: email.split("@")[0],
-      photoURL: "https://i.pravatar.cc/150?u=mock",
+      photoURL: null,
     };
     currentUser = user;
     return user;
@@ -35,7 +35,19 @@ export const mockFirebaseAuth = {
       uid: "mock-uid-google-456",
       email: "student@college.edu",
       displayName: "Google User",
-      photoURL: "https://i.pravatar.cc/150?u=google",
+      photoURL: null,
+    };
+    currentUser = user;
+    return user;
+  },
+
+  signInWithApple: async (): Promise<AuthUser> => {
+    await delay(1000);
+    const user = {
+      uid: "mock-uid-apple-789",
+      email: "student@college.edu",
+      displayName: "Apple User",
+      photoURL: null,
     };
     currentUser = user;
     return user;
@@ -60,6 +72,13 @@ export const mockFirebaseAuth = {
 
   getCurrentUser: (): AuthUser | null => {
     return currentUser;
+  },
+
+  updateProfile: async (updates: Partial<AuthUser>): Promise<void> => {
+    await delay(500);
+    if (currentUser) {
+      currentUser = { ...currentUser, ...updates };
+    }
   },
 };
 

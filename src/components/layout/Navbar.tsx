@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, Bell, LogOut } from "lucide-react";
+import { Search, Bell, LogOut, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -55,9 +55,11 @@ export function Navbar() {
                 
                 <Link href="/profile">
                   <Avatar className="h-9 w-9 border border-border cursor-pointer hover:opacity-80 transition-opacity">
-                    <AvatarImage src={user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`} alt={user.displayName || "User"} />
-                    <AvatarFallback className="font-bold bg-black text-white dark:bg-white dark:text-black">
-                      {user.displayName?.charAt(0)?.toUpperCase() || "U"}
+                    <AvatarImage src={user.photoURL || ""} alt={user.displayName || "User"} />
+                    <AvatarFallback className="bg-[#DFE5E7] dark:bg-gray-800 flex items-center justify-center overflow-hidden">
+                      <svg viewBox="0 0 24 24" fill="currentColor" className="h-[120%] w-[120%] text-white dark:text-gray-600 mt-2">
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                      </svg>
                     </AvatarFallback>
                   </Avatar>
                 </Link>
@@ -83,6 +85,10 @@ export function Navbar() {
               <div className="flex items-center gap-4">
                 <a 
                   href="#about"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
                   className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                 >
                   About
