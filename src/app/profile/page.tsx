@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { auth, db, storage } from "@/lib/firebase";
 import { updateProfile, onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Input } from "@/components/ui/input";
@@ -104,20 +104,34 @@ export default function ProfilePage() {
     }
     
     setSaving(true);
+    
+    // 1. Check username uniqueness by querying the users collection
     try {
-      // 4. USERNAME UNIQUENESS CHECK
-      const usernameDocRef = doc(db, "usernames", username);
-      const usernameDoc = await getDoc(usernameDocRef);
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, where("username", "==", username));
+      const querySnapshot = await getDocs(q);
       
-      if (usernameDoc.exists() && usernameDoc.data().uid !== user.uid) {
+      let isTaken = false;
+      querySnapshot.forEach((docSnap) => {
+        if (docSnap.id !== user.uid) {
+          isTaken = true;
+        }
+      });
+
+      if (isTaken) {
         alert("Username is already taken. Please choose another one.");
         setSaving(false);
         return;
       }
-      
-      // Claim the username in the unique usernames collection
-      await setDoc(usernameDocRef, { uid: user.uid });
-      
+    } catch (err: any) {
+      console.error("Error checking username uniqueness:", err);
+      alert(`Failed to verify username uniqueness: ${err.message}`);
+      setSaving(false);
+      return;
+    }
+
+    // 2. Save actual profile data
+    try {
       const docRef = doc(db, "users", user.uid);
       const profileToSave = {
         ...profile,
@@ -127,16 +141,15 @@ export default function ProfilePage() {
         portfolio: profile.portfolio || []
       };
       
-      // Save profile with a timeout to catch uninitialized databases
       await Promise.race([
         setDoc(docRef, profileToSave, { merge: true }),
         new Promise((_, reject) => setTimeout(() => reject(new Error("Database connection timed out. Check your Firestore Security Rules and initialization.")), 10000))
       ]);
       
       alert("Profile updated successfully!");
-    } catch (err: unknown) {
-      console.error("Error saving profile:", err);
-      alert("Failed to save profile: " + ((err as Error).message || "Unknown error"));
+    } catch (err: any) {
+      console.error("Error saving to users collection:", err);
+      alert(`Permission Denied: Could not write to 'users' collection. Error: ${err.message}`);
     } finally {
       setSaving(false);
     }
