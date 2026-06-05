@@ -66,14 +66,6 @@ export function Navbar() {
                     </AvatarFallback>
                   </Avatar>
                 </Link>
-
-                <button 
-                  onClick={handleLogout}
-                  className="text-muted-foreground hover:text-red-500 transition-colors p-2"
-                  title="Logout"
-                >
-                  <LogOut className="h-4 w-4" />
-                </button>
               </div>
             </>
           ) : user && pathname === "/" ? (

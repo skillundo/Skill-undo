@@ -29,8 +29,16 @@ export default function ProfilePage() {
       try {
         // 1. ASYNC UPLOAD PIPELINE
         const fileRef = ref(storage, `avatars/${user.uid}`);
-        await uploadBytes(fileRef, file); // Wait completely for the upload to finish
-        const downloadURL = await getDownloadURL(fileRef); // Only then grab the URL
+        
+        const uploadTask = async () => {
+          await uploadBytes(fileRef, file);
+          return await getDownloadURL(fileRef);
+        };
+        
+        const downloadURL = await Promise.race([
+          uploadTask(),
+          new Promise<string>((_, reject) => setTimeout(() => reject(new Error("Firebase Storage connection timed out. Please click 'Get Started' under the Storage tab in your Firebase Console to enable image uploads.")), 15000))
+        ]);
         
         // Update Auth Profile
         await updateProfile(auth.currentUser, { photoURL: downloadURL });
