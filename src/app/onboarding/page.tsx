@@ -74,9 +74,9 @@ export default function OnboardingPage() {
       
       await checkProfileCompleteness(user.uid);
       router.push("/dashboard");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setError(err.message || "An error occurred while completing setup.");
+      setError((err as Error).message || "An error occurred while completing setup.");
     } finally {
       setLoading(false);
     }

@@ -3,10 +3,10 @@
 import { motion } from 'framer-motion';
 import { useEffect, useRef, useState, useMemo } from 'react';
 
-const buildKeyframes = (from: any, steps: any[]) => {
+const buildKeyframes = (from: Record<string, unknown>, steps: Record<string, unknown>[]) => {
   const keys = new Set([...Object.keys(from), ...steps.flatMap(s => Object.keys(s))]);
 
-  const keyframes: Record<string, any[]> = {};
+  const keyframes: Record<string, unknown[]> = {};
   keys.forEach(k => {
     keyframes[k] = [from[k], ...steps.map(s => s[k])];
   });
@@ -21,9 +21,9 @@ interface BlurTextProps {
   direction?: 'top' | 'bottom';
   threshold?: number;
   rootMargin?: string;
-  animationFrom?: any;
-  animationTo?: any[];
-  easing?: any;
+  animationFrom?: Record<string, unknown>;
+  animationTo?: Record<string, unknown>[];
+  easing?: (t: number) => number | string;
   onAnimationComplete?: () => void;
   stepDuration?: number;
   as?: React.ElementType;
@@ -40,7 +40,7 @@ const BlurText = ({
   rootMargin = '0px',
   animationFrom,
   animationTo,
-  easing = (t: any) => t,
+  easing = (t: number) => t,
   onAnimationComplete,
   stepDuration = 0.35,
   as: Component = 'p',
@@ -90,14 +90,14 @@ const BlurText = ({
   const totalDuration = stepDuration * (stepCount - 1);
   const times = Array.from({ length: stepCount }, (_, i) => (stepCount === 1 ? 0 : i / (stepCount - 1)));
 
-  const Tag = Component as any;
+  const Tag = Component as React.ElementType;
 
   return (
     <Tag ref={ref} className={className} style={{ display: 'flex', flexWrap: 'wrap' }}>
       {elements.map((segment, index) => {
         const animateKeyframes = buildKeyframes(fromSnapshot, toSnapshots);
 
-        const spanTransition: any = {
+        const spanTransition: Record<string, unknown> = {
           duration: totalDuration,
           times,
           delay: (index * delay) / 1000

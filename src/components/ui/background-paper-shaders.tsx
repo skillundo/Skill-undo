@@ -73,7 +73,9 @@ export function ShaderPlane({
 
   useFrame((state) => {
     if (mesh.current) {
+      // eslint-disable-next-line react-hooks/immutability
       uniforms.time.value = state.clock.elapsedTime
+      // eslint-disable-next-line react-hooks/immutability
       uniforms.intensity.value = 1.0 + Math.sin(state.clock.elapsedTime * 2) * 0.3
     }
   })

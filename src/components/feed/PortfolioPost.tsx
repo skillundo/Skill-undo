@@ -79,7 +79,7 @@ export function PortfolioPost({ post }: PortfolioPostProps) {
           <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
           <span className="font-bold text-sm">{(post.user.rating || 5.0).toFixed(1)}</span>
           <span className="text-muted-foreground text-sm">
-            ({post.user.completedJobs || Math.floor(Math.random() * 50) + 5})
+            ({post.user.completedJobs || 12})
           </span>
         </div>
 
