@@ -149,15 +149,15 @@ export default function ProfilePage() {
     try {
       const { error: upsertError } = await supabase
         .from('users')
-        .update({
+        .upsert({
+          firebase_uid: user.uid,
           username,
           college,
           locality: profile.locality || "",
           skills: profile.skills || [],
           portfolio: profile.portfolio || [],
           updated_at: new Date().toISOString()
-        })
-        .eq('firebase_uid', user.uid);
+        }, { onConflict: 'firebase_uid' });
         
       if (upsertError) throw upsertError;
       
