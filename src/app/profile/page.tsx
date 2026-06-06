@@ -2,10 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { auth, db, storage } from "@/lib/firebase";
+import { auth } from "@/lib/firebase";
 import { updateProfile, onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { supabase } from "@/lib/supabase";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Input } from "@/components/ui/input";
 import { Loader2, User, Upload, ArrowLeft } from "lucide-react";
@@ -27,33 +26,41 @@ export default function ProfilePage() {
     if (file && user && auth.currentUser) {
       setUploadingPhoto(true);
       try {
-        // Validate storage bucket
-        if (!storage) {
-          throw new Error("Firebase Storage is not initialized on the client.");
-        }
-        console.log("Storage Bucket:", storage.app.options.storageBucket);
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+        const filePath = `avatars/${user.uid}/${fileName}`;
 
         // 1. ASYNC UPLOAD PIPELINE
-        const fileRef = ref(storage, `avatars/${user.uid}`);
-        
-        // Wait completely for the upload to finish without Promise.race masking
-        await uploadBytes(fileRef, file);
-        const downloadURL = await getDownloadURL(fileRef);
+        const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(filePath, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: publicUrlData } = supabase.storage
+          .from('avatars')
+          .getPublicUrl(filePath);
+          
+        const downloadURL = publicUrlData.publicUrl;
         
         // Update Auth Profile
         await updateProfile(auth.currentUser, { photoURL: downloadURL });
         setUser({ ...user, photoURL: downloadURL });
         
         // 2. DATABASE SYNC
-        const docRef = doc(db, "users", user.uid);
-        await setDoc(docRef, { avatarUrl: downloadURL }, { merge: true });
+        const { error: dbError } = await supabase
+          .from('users')
+          .update({ avatar_url: downloadURL })
+          .eq('firebase_uid', user.uid);
+          
+        if (dbError) throw dbError;
         
         // Update Local UI State
         setProfile(prev => prev ? { ...prev, avatarUrl: downloadURL } : { avatarUrl: downloadURL });
         
       } catch (err: any) {
-        console.error("Firebase Upload Error:", err);
-        const errorMessage = err.code || err.message || "Unknown error";
+        console.error("Supabase Upload Error:", err);
+        const errorMessage = err.message || "Unknown error";
         alert(`Failed to upload photo: ${errorMessage}`);
       } finally {
         setUploadingPhoto(false);
@@ -68,10 +75,21 @@ export default function ProfilePage() {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         try {
-          const docRef = doc(db, "users", firebaseUser.uid);
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists() && isMounted) {
-            setProfile(docSnap.data() as Partial<UserProfile>);
+          const { data, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('firebase_uid', firebaseUser.uid)
+            .single();
+            
+          if (!error && data && isMounted) {
+            setProfile({
+              username: data.username,
+              college: data.college,
+              locality: data.locality,
+              skills: data.skills || [],
+              portfolio: data.portfolio || [],
+              avatarUrl: data.avatar_url
+            } as Partial<UserProfile>);
           }
         } catch (err) {
           console.error("Error loading profile:", err);
@@ -108,33 +126,17 @@ export default function ProfilePage() {
     // 1. Check username uniqueness gracefully
     let isTaken = false;
     try {
-      // First try to check the usernames collection
-      const usernameDocRef = doc(db, "usernames", username);
-      const usernameDoc = await getDoc(usernameDocRef);
-      
-      if (usernameDoc.exists() && usernameDoc.data().uid !== user.uid) {
+      const { data, error } = await supabase
+        .from('users')
+        .select('firebase_uid')
+        .eq('username', username)
+        .neq('firebase_uid', user.uid);
+        
+      if (!error && data && data.length > 0) {
         isTaken = true;
-      } else {
-        // Try to claim the username, but don't block if rules deny it
-        setDoc(usernameDocRef, { uid: user.uid }).catch(e => 
-          console.warn("Could not claim username in 'usernames' collection:", e)
-        );
       }
     } catch (err: any) {
-      // If we can't even read the usernames collection due to rules, we fallback to a query
-      try {
-        const usersRef = collection(db, "users");
-        const q = query(usersRef, where("username", "==", username));
-        const querySnapshot = await getDocs(q);
-        
-        querySnapshot.forEach((docSnap) => {
-          if (docSnap.id !== user.uid) {
-            isTaken = true;
-          }
-        });
-      } catch (fallbackErr: any) {
-        console.warn("Could not verify username uniqueness due to strict database rules. Bypassing check.");
-      }
+      console.warn("Could not verify username uniqueness:", err);
     }
 
     if (isTaken) {
@@ -145,24 +147,24 @@ export default function ProfilePage() {
 
     // 2. Save actual profile data
     try {
-      const docRef = doc(db, "users", user.uid);
-      const profileToSave = {
-        ...profile,
-        username,
-        college,
-        skills: profile.skills || [],
-        portfolio: profile.portfolio || []
-      };
-      
-      await Promise.race([
-        setDoc(docRef, profileToSave, { merge: true }),
-        new Promise((_, reject) => setTimeout(() => reject(new Error("Database connection timed out. Check your Firestore Security Rules and initialization.")), 10000))
-      ]);
+      const { error: upsertError } = await supabase
+        .from('users')
+        .update({
+          username,
+          college,
+          locality: profile.locality || "",
+          skills: profile.skills || [],
+          portfolio: profile.portfolio || [],
+          updated_at: new Date().toISOString()
+        })
+        .eq('firebase_uid', user.uid);
+        
+      if (upsertError) throw upsertError;
       
       alert("Profile updated successfully!");
     } catch (err: any) {
-      console.error("Error saving to users collection:", err);
-      alert(`Permission Denied: Could not write to 'users' collection. Error: ${err.message}`);
+      console.error("Error saving to users table:", err);
+      alert(`Could not write to 'users' table. Error: ${err.message}`);
     } finally {
       setSaving(false);
     }

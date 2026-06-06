@@ -1,9 +1,9 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { AuthUser, auth, db } from "@/lib/firebase";
+import { AuthUser, auth } from "@/lib/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { supabase } from "@/lib/supabase";
 import { useRouter, usePathname } from "next/navigation";
 
 interface AuthContextType {
@@ -27,9 +27,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const checkProfileCompleteness = async (uid: string) => {
     try {
-      const userDocRef = doc(db, "users", uid);
-      const userDoc = await getDoc(userDocRef);
-      const isComplete = !!(userDoc.exists() && userDoc.data()?.username);
+      const { data, error } = await supabase
+        .from('users')
+        .select('username')
+        .eq('firebase_uid', uid)
+        .single();
+        
+      if (error && error.code !== 'PGRST116') throw error; // PGRST116 is not found
+
+      const isComplete = !!data?.username;
       setIsProfileComplete(isComplete);
       
       if (isComplete) {

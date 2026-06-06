@@ -5,6 +5,8 @@ import { Check, X, UploadCloud, Image as ImageIcon, Plus, Info, ArrowLeft } from
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useDashboardContext } from "@/context/DashboardContext";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 const CATEGORIES = [
   "Engineering", "Design", "Writing", "Marketing", "Video & Animation", 
@@ -26,6 +28,7 @@ const SUGGESTED_TAGS = [
 export default function ListASkill() {
   const router = useRouter();
   const { addSkill } = useDashboardContext();
+  const { user } = useAuth();
 
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
@@ -36,6 +39,7 @@ export default function ListASkill() {
   const [customTag, setCustomTag] = useState("");
 
   const [images, setImages] = useState<string[]>([]);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [basicPrice, setBasicPrice] = useState("");
@@ -60,17 +64,20 @@ export default function ListASkill() {
   const [maxActiveOrders, setMaxActiveOrders] = useState("3");
 
   const [publishError, setPublishError] = useState("");
+  const [isPublishing, setIsPublishing] = useState(false);
 
   const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const newFiles = Array.from(e.target.files);
       const newImages = newFiles.map(file => URL.createObjectURL(file));
       setImages(prev => [...prev, ...newImages].slice(0, 5));
+      setImageFiles(prev => [...prev, ...newFiles].slice(0, 5));
     }
   };
 
   const removeImage = (index: number) => {
     setImages(prev => prev.filter((_, i) => i !== index));
+    setImageFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const toggleTag = (tag: string) => {
@@ -98,12 +105,65 @@ export default function ListASkill() {
   const hasImage = images.length > 0;
   const isReady = hasTitle && hasCategory && hasDesc && hasPrice && hasImage;
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
     if (!isReady) {
       setPublishError("Please complete all required fields in the checklist.");
-    } else {
-      setPublishError("");
-      
+      return;
+    }
+    
+    if (!user) {
+      setPublishError("You must be logged in to publish a skill.");
+      return;
+    }
+
+    setIsPublishing(true);
+    setPublishError("");
+    
+    try {
+      let mainImageUrl = "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&q=80&w=800"; // fallback
+
+      // Upload first image to Supabase Storage if available
+      if (imageFiles.length > 0) {
+        const file = imageFiles[0];
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+        const filePath = `skills/${user.uid}/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('skill-images')
+          .upload(filePath, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: publicUrlData } = supabase.storage
+          .from('skill-images')
+          .getPublicUrl(filePath);
+          
+        mainImageUrl = publicUrlData.publicUrl;
+      }
+
+      // Insert into Supabase DB
+      const { error: insertError } = await supabase
+        .from('skills')
+        .insert({
+          user_id: user.uid,
+          title,
+          category,
+          subcategory,
+          description,
+          tags,
+          price_basic: Number(basicPrice),
+          price_standard: Number(standardPrice) || null,
+          price_premium: Number(premiumPrice) || null,
+          delivery_time: delivery,
+          revisions: revisions,
+          image_url: mainImageUrl,
+          status: "active",
+        });
+
+      if (insertError) throw insertError;
+
+      // Update DashboardContext for backward compatibility (optional but safe)
       const categoryColors: Record<string, string> = {
         Engineering: "bg-blue-500",
         Design: "bg-pink-500",
@@ -116,10 +176,15 @@ export default function ListASkill() {
         catColor: categoryColors[category] || "bg-zinc-500",
         status: "Active",
         price: Number(basicPrice),
-        imageUrl: images[0] || "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&q=80&w=800",
+        imageUrl: mainImageUrl,
       });
 
       router.push("/dashboard/my-skills");
+    } catch (err: any) {
+      console.error("Publish error:", err);
+      setPublishError(err.message || "An error occurred while publishing.");
+    } finally {
+      setIsPublishing(false);
     }
   };
 
@@ -644,9 +709,10 @@ export default function ListASkill() {
           </Link>
           <button 
             onClick={handlePublish}
-            className="px-6 py-2.5 rounded-lg text-sm font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
+            disabled={isPublishing}
+            className="px-6 py-2.5 rounded-lg text-sm font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
-            Publish Skill &rarr;
+            {isPublishing ? "Publishing..." : "Publish Skill \u2192"}
           </button>
         </div>
       </div>

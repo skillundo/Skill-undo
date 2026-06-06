@@ -1,7 +1,5 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
+import { getAuth, GoogleAuthProvider, OAuthProvider } from "firebase/auth";
 
 // Web app's Firebase configuration
 const firebaseConfig = {
@@ -16,10 +14,11 @@ const firebaseConfig = {
 // Initialize Firebase for SSR compatibility
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
 
-export { app, auth, db, storage };
+const googleProvider = new GoogleAuthProvider();
+const appleProvider = new OAuthProvider("apple.com");
+
+export { app, auth, googleProvider, appleProvider };
 
 // Keep the AuthUser interface for TypeScript compatibility with the rest of the application
 export interface AuthUser {

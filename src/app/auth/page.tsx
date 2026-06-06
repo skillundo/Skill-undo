@@ -11,8 +11,8 @@ import {
   OAuthProvider, 
   onAuthStateChanged 
 } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
-import { auth, db } from "@/lib/firebase";
+import { auth } from "@/lib/firebase";
+import { syncUserToSupabase } from "@/lib/syncUser";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
@@ -26,28 +26,19 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Listen to Auth State and handle Firestore registration check & redirect
+  // Listen to Auth State and handle Supabase registration check & redirect
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         setLoading(true);
         setError("");
         try {
-          const userDocRef = doc(db, "users", currentUser.uid);
-          const userDoc = await getDoc(userDocRef);
+          // Sync user to Supabase
+          await syncUserToSupabase(currentUser);
           
-          if (!userDoc.exists()) {
-            // New user: create an empty document to represent their marketplace profile
-            await setDoc(userDocRef, {
-              uid: currentUser.uid,
-              email: currentUser.email,
-              createdAt: new Date().toISOString(),
-            });
-          }
-          
-          router.push("/onboarding");
+          router.push("/dashboard");
         } catch (err: any) {
-          console.error("Firestore user verification error:", err);
+          console.error("Supabase user verification error:", err);
           setError(err.message || "Failed to verify or initialize user profile.");
         } finally {
           setLoading(false);

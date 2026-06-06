@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { PortfolioPost, FeedGig } from "@/components/feed/PortfolioPost";
 import { SuggestedSellers } from "@/components/feed/SuggestedSellers";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -15,25 +15,55 @@ const CATEGORIES = {
 
 type SortOption = "Relevant" | "Newest" | "Top Rated" | "Price: Low to High" | "Price: High to Low";
 
+import { supabase } from "@/lib/supabase";
+
 export default function DashboardFeed() {
   const { user } = useAuth();
   const effectiveUid = user?.uid;
-  const currentUser: UserProfile | undefined = undefined;
 
-  const { skills } = useDashboardContext();
+  const [feedPosts, setFeedPosts] = useState<FeedGig[]>([]);
 
-  // Map context skills to FeedGig format
-  const feedPosts: FeedGig[] = useMemo(() => {
-    return skills.filter(s => s.status === "Active").map(skill => ({
-      id: skill.id,
-      user: skill.user,
-      imageUrl: skill.imageUrl,
-      title: skill.title,
-      price: skill.price,
-      expertise: "Expert Level",
-      category: skill.category,
-    }));
-  }, [skills]);
+  useEffect(() => {
+    const fetchSkills = async () => {
+      const { data, error } = await supabase
+        .from('skills')
+        .select('*, users(full_name, avatar_url, seller_level)')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (error) {
+        console.error("Error fetching skills:", error);
+        return;
+      }
+
+      if (data) {
+        const posts: FeedGig[] = data.map((skill: any) => ({
+          id: skill.id,
+          user: {
+            id: skill.user_id,
+            username: skill.users?.full_name || 'Unknown',
+            displayName: skill.users?.full_name || 'Unknown',
+            avatarUrl: skill.users?.avatar_url || '',
+            skills: skill.tags || [],
+            rating: 0,
+            completedJobs: 0,
+            college: '',
+            locality: '',
+            portfolio: [],
+          },
+          imageUrl: skill.image_url || '',
+          title: skill.title,
+          price: skill.price_basic || 0,
+          expertise: "Expert Level",
+          category: skill.category,
+        }));
+        setFeedPosts(posts);
+      }
+    };
+
+    fetchSkills();
+  }, []);
 
 
   const [activeCategory, setActiveCategory] = useState<string | null>(null);

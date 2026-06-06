@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { db } from "@/lib/firebase";
-import { doc, setDoc } from "firebase/firestore";
+import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
 import { Loader2, Plus, X } from "lucide-react";
 import { ShaderBackground } from "@/components/ui/shader-background";
@@ -53,25 +52,27 @@ export default function OnboardingPage() {
     setLoading(true);
     
     try {
-      const userDocRef = doc(db, "users", user.uid);
-      // Add a 10-second timeout to prevent infinite hanging
-      await Promise.race([
-        setDoc(userDocRef, {
-          fullName: name.trim(),
+      const { error: upsertError } = await supabase
+        .from('users')
+        .upsert({
+          firebase_uid: user.uid,
+          full_name: name.trim(),
           username: username.trim().toLowerCase(),
-          avatarUrl: user.photoURL || "",
+          avatar_url: user.photoURL || "",
           skills: skills.map(s => s.name),
           rating: 0,
-          completedJobs: 0,
+          completed_jobs: 0,
           college: "Not specified",
           locality: "Not specified",
           portfolio: isSeller && portfolio ? [portfolio] : [],
           hours: isSeller && hours ? hours : "",
-          isSeller,
-          updatedAt: new Date().toISOString(),
-        }, { merge: true }),
-        new Promise((_, reject) => setTimeout(() => reject(new Error("Database connection timed out. Please ensure you have clicked 'Create Database' under Firestore Database in your Firebase Console.")), 10000))
-      ]);
+          is_seller: isSeller,
+          updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'firebase_uid'
+        });
+
+      if (upsertError) throw upsertError;
       
       // Update local storage status
       localStorage.setItem(`profile_complete_${user.uid}`, "true");
@@ -79,7 +80,7 @@ export default function OnboardingPage() {
       await checkProfileCompleteness(user.uid);
       router.push("/dashboard");
     } catch (err: unknown) {
-      console.error(err);
+      console.error("Supabase onboarding error:", err);
       setError((err as Error).message || "An error occurred while completing setup.");
     } finally {
       setLoading(false);

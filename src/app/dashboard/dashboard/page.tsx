@@ -4,13 +4,73 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowUp, Eye, MessageSquare, Star, Bell } from "lucide-react";
 import { useDashboardContext } from "@/context/DashboardContext";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { supabase } from "@/lib/supabase";
+import { useEffect } from "react";
 
 export default function Dashboard() {
-  const { skills, orders, notifications, toggleSkillStatus, markAllNotificationsRead } = useDashboardContext();
+  const { notifications, markAllNotificationsRead } = useDashboardContext();
+  const { user } = useAuth();
+  
+  const [activeSkills, setActiveSkills] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const activeSkills = skills.filter(s => s.status === "Active" || s.status === "Paused");
+  useEffect(() => {
+    if (!user) return;
+    const fetchData = async () => {
+      try {
+        const { data: skillsData } = await supabase
+          .from('skills')
+          .select('*')
+          .eq('user_id', user.uid);
+          
+        if (skillsData) {
+          setActiveSkills(skillsData.map((s:any) => ({
+            id: s.id,
+            title: s.title,
+            status: s.status,
+            views: 0,
+            orders: 0,
+            earned: 0,
+            catColor: "bg-primary"
+          })).filter(s => s.status === 'active' || s.status === 'paused'));
+        }
 
-  if (skills.length === 0) {
+        const { data: ordersData } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('seller_id', user.uid);
+
+        if (ordersData) {
+          setOrders(ordersData.map((o:any) => ({
+            buyerName: o.buyer_name || "Buyer",
+            service: o.service_title || "Service",
+            amount: o.amount || 0,
+            status: o.status || "Pending",
+            due: o.due_date || "N/A"
+          })));
+        }
+      } catch (err) {
+        console.error("Error fetching dashboard data:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, [user]);
+
+  const toggleSkillStatus = async (id: string, currentStatus: string) => {
+    const newStatus = currentStatus === 'active' ? 'paused' : 'active';
+    await supabase.from('skills').update({ status: newStatus }).eq('id', id);
+    setActiveSkills(prev => prev.map(s => s.id === id ? { ...s, status: newStatus } : s));
+  };
+
+  if (isLoading) {
+    return <div className="w-full px-6 py-8">Loading dashboard...</div>;
+  }
+
+  if (activeSkills.length === 0) {
     return (
       <div className="w-full px-6 py-8">
         <div className="mb-8">
@@ -230,10 +290,10 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <button 
-                  onClick={() => toggleSkillStatus(skill.id)}
-                  className={`px-3 py-1 rounded-full text-xs font-bold transition-colors ${skill.status === "Active" ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground border border-border'}`}
+                  onClick={() => toggleSkillStatus(skill.id, skill.status)}
+                  className={`px-3 py-1 rounded-full text-xs font-bold transition-colors ${skill.status === "active" ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground border border-border'}`}
                 >
-                  {skill.status === "Active" ? 'ON' : 'OFF'}
+                  {skill.status === "active" ? 'ON' : 'OFF'}
                 </button>
               </div>
             ))}

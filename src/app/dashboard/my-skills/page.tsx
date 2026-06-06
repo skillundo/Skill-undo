@@ -4,29 +4,73 @@ import { useState } from "react";
 import Link from "next/link";
 import { Edit2, Trash2, Image as ImageIcon } from "lucide-react";
 import { useDashboardContext } from "@/context/DashboardContext";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { supabase } from "@/lib/supabase";
+import { useEffect } from "react";
 
 export default function MySkills() {
-  const { skills, toggleSkillStatus, deleteSkill } = useDashboardContext();
+  const { user } = useAuth();
+  const [skills, setSkills] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("All");
+
+  useEffect(() => {
+    if (!user) return;
+    const fetchSkills = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('skills')
+          .select('*')
+          .eq('user_id', user.uid)
+          .order('created_at', { ascending: false });
+          
+        if (data && !error) {
+          setSkills(data.map((s: any) => ({
+            id: s.id,
+            title: s.title,
+            category: s.category,
+            status: s.status, // "active", "paused", "draft"
+            imageUrl: s.image_url,
+            views: 0,
+            orders: 0,
+            earned: 0,
+            rating: 0
+          })));
+        }
+      } catch (err) {
+        console.error("Error fetching skills:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchSkills();
+  }, [user]);
 
   const counts = {
     All: skills.length,
-    Active: skills.filter(s => s.status === "Active").length,
-    Paused: skills.filter(s => s.status === "Paused").length,
-    Draft: skills.filter(s => s.status === "Draft").length,
+    Active: skills.filter(s => s.status === "active").length,
+    Paused: skills.filter(s => s.status === "paused").length,
+    Draft: skills.filter(s => s.status === "draft").length,
   };
 
-  const filteredSkills = skills.filter(s => activeTab === "All" || s.status === activeTab);
+  const filteredSkills = skills.filter(s => activeTab === "All" || s.status === activeTab.toLowerCase());
 
-  const handleToggle = (id: string) => {
-    toggleSkillStatus(id);
+  const handleToggle = async (id: string, currentStatus: string) => {
+    const newStatus = currentStatus === 'active' ? 'paused' : 'active';
+    await supabase.from('skills').update({ status: newStatus }).eq('id', id);
+    setSkills(prev => prev.map(s => s.id === id ? { ...s, status: newStatus } : s));
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm("Are you sure you want to delete this skill?")) {
-      deleteSkill(id);
+      await supabase.from('skills').delete().eq('id', id);
+      setSkills(prev => prev.filter(s => s.id !== id));
     }
   };
+
+  if (isLoading) {
+    return <div className="w-full px-6 py-8">Loading skills...</div>;
+  }
 
   return (
     <div className="w-full px-6 py-8">
@@ -84,8 +128,8 @@ export default function MySkills() {
 
               {/* Status Badge */}
               <div className={`absolute top-3 right-3 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider shadow-sm backdrop-blur-md text-white ${
-                skill.status === 'Active' ? 'bg-green-500/80' : 
-                skill.status === 'Paused' ? 'bg-zinc-500/80' : 
+                skill.status === 'active' ? 'bg-green-500/80' : 
+                skill.status === 'paused' ? 'bg-zinc-500/80' : 
                 'bg-amber-500/80'
               }`}>
                 {skill.status}
@@ -98,7 +142,7 @@ export default function MySkills() {
                 {skill.title}
               </h3>
 
-              {skill.status === "Draft" ? (
+              {skill.status === "draft" ? (
                 <Link href="/dashboard/list-skill" className="text-sm font-bold text-amber-500 hover:underline mb-1">
                   Complete setup &rarr;
                 </Link>
@@ -123,21 +167,21 @@ export default function MySkills() {
                 <Edit2 className="h-3.5 w-3.5" /> Edit
               </Link>
               
-              {skill.status !== "Draft" ? (
+              {skill.status !== "draft" ? (
                 <button 
-                  onClick={() => handleToggle(skill.id)}
+                  onClick={() => handleToggle(skill.id, skill.status)}
                   className={`p-3 flex items-center justify-center gap-2 text-xs font-bold transition-colors hover:bg-muted/30 ${
-                    skill.status === 'Active' ? 'text-amber-500 hover:text-amber-600' : 'text-green-500 hover:text-green-600'
+                    skill.status === 'active' ? 'text-amber-500 hover:text-amber-600' : 'text-green-500 hover:text-green-600'
                   }`}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    {skill.status === 'Active' ? (
+                    {skill.status === 'active' ? (
                       <><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></>
                     ) : (
                       <polygon points="5 3 19 12 5 21 5 3"/>
                     )}
                   </svg>
-                  {skill.status === 'Active' ? 'Pause' : 'Resume'}
+                  {skill.status === 'active' ? 'Pause' : 'Resume'}
                 </button>
               ) : (
                 <div className="p-3 flex items-center justify-center" />
