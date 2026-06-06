@@ -25,7 +25,6 @@ export function DashboardSidebar() {
   const navItems = [
     { icon: Search, label: "Search", href: "#search", isAction: true },
     { icon: Compass, label: "Explore", href: "/dashboard" },
-    { icon: PlusSquare, label: "Create", href: "/workspace/new" },
     { icon: MessageSquare, label: "Messages", href: "/dashboard/messages", badge: 2 },
   ];
 
