@@ -8,9 +8,14 @@ import { UserProfile, MOCK_USERS } from "@/lib/mock-data";
 import { useDashboardContext } from "@/context/DashboardContext";
 
 const CATEGORIES = {
-  Engineering: ["Next.js", "React", "TypeScript", "Node.js", "PostgreSQL", "API"],
-  Design: ["Figma", "UI/UX", "Tailwind"],
-  Writing: ["Copywriting", "SEO", "Content"],
+  "TECH & ENGINEERING": ["Web Development", "Mobile App Development", "UI/UX Design", "Backend Development", "Data Science & ML", "Cybersecurity", "DevOps & Cloud", "Game Development", "Embedded Systems", "Database Design"],
+  "CREATIVE & DESIGN": ["Graphic Design", "Logo & Branding", "Video Editing", "Motion Graphics", "Photography", "Illustration & Art", "3D Modeling", "Poster & Flyer Design", "Presentation Design", "Comic & Storyboard"],
+  "WRITING & CONTENT": ["Content Writing", "Copywriting", "Blog & Article Writing", "Resume & CV Writing", "Research & Reports", "Proofreading & Editing", "Ghostwriting", "Technical Writing", "Creative Writing", "Script & Screenplay"],
+  "ACADEMIC & TUTORING": ["Math & Statistics Tutoring", "Physics Tutoring", "Chemistry Tutoring", "Programming Tutoring", "Language Learning", "Exam Preparation (JEE/NEET/GATE)", "Assignment Help", "Thesis & Dissertation Help", "Study Notes Creation", "Online Course Creation"],
+  "MUSIC & AUDIO": ["Music Composition", "Beat Making", "Podcast Editing", "Voice Over", "Sound Design", "Lyrics Writing", "Music Lessons", "Audio Mixing & Mastering"],
+  "BUSINESS & MARKETING": ["Social Media Management", "SEO & Keyword Research", "Digital Marketing", "Business Plan Writing", "Market Research", "Email Marketing", "Pitch Deck Design", "Brand Strategy", "Event Planning", "Sales & Lead Generation"],
+  "PERSONAL & LIFESTYLE": ["Fitness Coaching", "Yoga & Wellness", "Cooking & Recipes", "Language Translation", "Career Counselling", "Mental Health Support", "Life Coaching", "Astrology & Tarot", "Fashion Styling", "Home Tutoring (local)"],
+  "CRAFTS & HANDMADE": ["Handmade Gifts", "Painting & Drawing", "Jewellery Making", "Pottery & Ceramics", "Embroidery & Knitting", "Candle & Soap Making", "Paper Craft & Origami", "Custom Merchandise"]
 };
 
 type SortOption = "Relevant" | "Newest" | "Top Rated" | "Price: Low to High" | "Price: High to Low";
@@ -74,7 +79,9 @@ export default function DashboardFeed() {
 
     if (activeCategory) {
       const categorySkills = CATEGORIES[activeCategory as keyof typeof CATEGORIES];
-      filtered = filtered.filter(post => post.user.skills.some(s => categorySkills.includes(s)));
+      if (categorySkills) {
+        filtered = filtered.filter(post => categorySkills.includes(post.category));
+      }
     }
 
     return [...filtered].sort((a, b) => {
@@ -160,7 +167,7 @@ export default function DashboardFeed() {
 
         {/* Grid Feed */}
         {displayedPosts.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
             {displayedPosts.map((post) => (
               <PortfolioPost key={post.id} post={post} />
             ))}

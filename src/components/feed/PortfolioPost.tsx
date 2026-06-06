@@ -1,6 +1,10 @@
+"use client";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, Star, Heart, BadgeCheck } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { UserProfile } from "@/lib/mock-data";
 import { UserProfile } from "@/lib/mock-data";
 
 export interface FeedGig {
@@ -25,6 +29,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 export function PortfolioPost({ post }: PortfolioPostProps) {
+  const router = useRouter();
   const categoryColor = CATEGORY_COLORS[post.category] || CATEGORY_COLORS.Other;
   
   return (
@@ -97,6 +102,14 @@ export function PortfolioPost({ post }: PortfolioPostProps) {
             </span>
           </div>
         </div>
+
+        {/* Hire Now Button */}
+        <button 
+          onClick={() => router.push(`/dashboard/skill/${post.id}`)}
+          className="w-full bg-[#7c6af7] text-white font-semibold text-[13px] py-[9px] rounded-[10px] mt-4 hover:opacity-90 transition-opacity"
+        >
+          Hire Now
+        </button>
       </div>
     </div>
   );

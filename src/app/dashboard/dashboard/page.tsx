@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowUp, Eye, MessageSquare, Star, Bell } from "lucide-react";
+import { ArrowUp, Eye, MessageSquare, Star, Bell, X } from "lucide-react";
 import { useDashboardContext } from "@/context/DashboardContext";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { supabase } from "@/lib/supabase";
@@ -15,6 +15,18 @@ export default function Dashboard() {
   const [activeSkills, setActiveSkills] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showOrderSuccess, setShowOrderSuccess] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get("order") === "placed") {
+        setShowOrderSuccess(true);
+        const timer = setTimeout(() => setShowOrderSuccess(false), 5000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -73,6 +85,17 @@ export default function Dashboard() {
   if (activeSkills.length === 0) {
     return (
       <div className="w-full px-6 py-8">
+        {showOrderSuccess && (
+          <div className="mb-6 p-4 bg-green-500/10 border border-green-500/20 text-green-600 dark:text-green-400 rounded-xl flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-xl">🎉</span>
+              <p className="text-sm font-medium">Your order has been placed successfully! The seller has been notified.</p>
+            </div>
+            <button onClick={() => setShowOrderSuccess(false)} className="text-green-600/70 hover:text-green-600">
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        )}
         <div className="mb-8">
           <h1 className="text-3xl font-bold tracking-tight mb-2">My Orders</h1>
           <p className="text-muted-foreground text-base">Track the status of the services you've purchased.</p>
@@ -152,6 +175,17 @@ export default function Dashboard() {
 
   return (
     <div className="w-full px-6 py-8">
+      {showOrderSuccess && (
+        <div className="mb-6 p-4 bg-green-500/10 border border-green-500/20 text-green-600 dark:text-green-400 rounded-xl flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-xl">🎉</span>
+            <p className="text-sm font-medium">Your order has been placed successfully! The seller has been notified.</p>
+          </div>
+          <button onClick={() => setShowOrderSuccess(false)} className="text-green-600/70 hover:text-green-600">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+      )}
       {/* ROW 1: Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
         {/* Card 1 */}

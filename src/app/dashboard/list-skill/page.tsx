@@ -8,16 +8,15 @@ import { useDashboardContext } from "@/context/DashboardContext";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/components/auth/AuthProvider";
 
-const CATEGORIES = [
-  "Engineering", "Design", "Writing", "Marketing", "Video & Animation", 
-  "Photography", "Music & Audio", "Data & Analytics", "Tutoring & Teaching"
-];
-
-const SUBCATEGORIES: Record<string, string[]> = {
-  Engineering: ["Frontend Development", "Backend Development", "Mobile Apps"],
-  Design: ["UI/UX Design", "Graphic Design", "Logo Design"],
-  Writing: ["Content Writing", "SEO", "Copywriting"],
-  // Just provide defaults for others or fallbacks
+const CATEGORIES_MAP: Record<string, string[]> = {
+  "TECH & ENGINEERING": ["Web Development", "Mobile App Development", "UI/UX Design", "Backend Development", "Data Science & ML", "Cybersecurity", "DevOps & Cloud", "Game Development", "Embedded Systems", "Database Design"],
+  "CREATIVE & DESIGN": ["Graphic Design", "Logo & Branding", "Video Editing", "Motion Graphics", "Photography", "Illustration & Art", "3D Modeling", "Poster & Flyer Design", "Presentation Design", "Comic & Storyboard"],
+  "WRITING & CONTENT": ["Content Writing", "Copywriting", "Blog & Article Writing", "Resume & CV Writing", "Research & Reports", "Proofreading & Editing", "Ghostwriting", "Technical Writing", "Creative Writing", "Script & Screenplay"],
+  "ACADEMIC & TUTORING": ["Math & Statistics Tutoring", "Physics Tutoring", "Chemistry Tutoring", "Programming Tutoring", "Language Learning", "Exam Preparation (JEE/NEET/GATE)", "Assignment Help", "Thesis & Dissertation Help", "Study Notes Creation", "Online Course Creation"],
+  "MUSIC & AUDIO": ["Music Composition", "Beat Making", "Podcast Editing", "Voice Over", "Sound Design", "Lyrics Writing", "Music Lessons", "Audio Mixing & Mastering"],
+  "BUSINESS & MARKETING": ["Social Media Management", "SEO & Keyword Research", "Digital Marketing", "Business Plan Writing", "Market Research", "Email Marketing", "Pitch Deck Design", "Brand Strategy", "Event Planning", "Sales & Lead Generation"],
+  "PERSONAL & LIFESTYLE": ["Fitness Coaching", "Yoga & Wellness", "Cooking & Recipes", "Language Translation", "Career Counselling", "Mental Health Support", "Life Coaching", "Astrology & Tarot", "Fashion Styling", "Home Tutoring (local)"],
+  "CRAFTS & HANDMADE": ["Handmade Gifts", "Painting & Drawing", "Jewellery Making", "Pottery & Ceramics", "Embroidery & Knitting", "Candle & Soap Making", "Paper Craft & Origami", "Custom Merchandise"]
 };
 
 const SUGGESTED_TAGS = [
@@ -280,33 +279,28 @@ export default function ListASkill() {
                   <div className="text-xs text-muted-foreground mt-1.5 text-right">{title.length} / 80</div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold mb-2">Category</label>
-                    <select
-                      value={category}
-                      onChange={(e) => {
-                        setCategory(e.target.value);
-                        setSubcategory("");
-                      }}
-                      className="w-full bg-muted/50 border border-border rounded-lg px-4 py-3 focus:outline-none focus:border-primary transition-colors text-sm appearance-none"
-                    >
-                      <option value="">Select a category</option>
-                      {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold mb-2">Subcategory</label>
-                    <select
-                      value={subcategory}
-                      onChange={(e) => setSubcategory(e.target.value)}
-                      disabled={!category}
-                      className="w-full bg-muted/50 border border-border rounded-lg px-4 py-3 focus:outline-none focus:border-primary transition-colors text-sm appearance-none disabled:opacity-50"
-                    >
-                      <option value="">Select a subcategory</option>
-                      {(SUBCATEGORIES[category] || []).map((sub: string) => <option key={sub} value={sub}>{sub}</option>)}
-                    </select>
-                  </div>
+                <div>
+                  <label className="block text-sm font-semibold mb-2">Category</label>
+                  <select
+                    value={subcategory}
+                    onChange={(e) => {
+                      const selectedSub = e.target.value;
+                      setSubcategory(selectedSub);
+                      // Find parent category based on subcategory
+                      const parentCat = Object.keys(CATEGORIES_MAP).find(key => CATEGORIES_MAP[key].includes(selectedSub));
+                      setCategory(selectedSub); // Set category as the subcategory to match Explore filter behavior
+                    }}
+                    className="w-full bg-muted/50 border border-border rounded-lg px-4 py-3 focus:outline-none focus:border-primary transition-colors text-sm appearance-none"
+                  >
+                    <option value="">Select a category</option>
+                    {Object.entries(CATEGORIES_MAP).map(([groupName, items]) => (
+                      <optgroup key={groupName} label={groupName}>
+                        {items.map(sub => (
+                          <option key={sub} value={sub}>{sub}</option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
                 </div>
 
                 <div>

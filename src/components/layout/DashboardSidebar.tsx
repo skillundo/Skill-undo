@@ -14,7 +14,6 @@ export function DashboardSidebar() {
   const router = useRouter();
   const { user, setUser } = useAuth();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [showSearch, setShowSearch] = useState(false);
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -24,7 +23,7 @@ export function DashboardSidebar() {
 
   const navItems = [
     { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard/dashboard" },
-    { icon: Search, label: "Search", href: "#search", isAction: true },
+    { icon: Search, label: "Search", href: "/dashboard/search" },
     { icon: Compass, label: "Explore", href: "/dashboard" },
     { icon: MessageSquare, label: "Messages", href: "/dashboard/messages", badge: 2 },
     { icon: Layers, label: "My Skills", href: "/dashboard/my-skills" },
@@ -61,7 +60,7 @@ export function DashboardSidebar() {
             <>
               {/* Icon Container */}
               <div className="relative flex items-center justify-center">
-                <Icon className={`h-6 w-6 group-hover:scale-105 transition-transform ${(item.isAction ? showSearch : isActive && !showSearch) ? "fill-foreground/10 stroke-[2.5]" : "stroke-[2]"}`} />
+                <Icon className={`h-6 w-6 group-hover:scale-105 transition-transform ${isActive ? "fill-foreground/10 stroke-[2.5]" : "stroke-[2]"}`} />
                 {item.badge && (
                   <span className="absolute -top-1 -right-2 lg:hidden bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
                     {item.badge}
@@ -80,28 +79,13 @@ export function DashboardSidebar() {
               </div>
             </>
           );
-          
-          if (item.isAction) {
-            return (
-              <button
-                key={item.label}
-                onClick={() => {
-                  if (item.label === "Search") setShowSearch(!showSearch);
-                }}
-                className={`flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-1 lg:gap-4 p-2 lg:p-3 rounded-xl transition-colors text-foreground/80 hover:text-foreground group ${showSearch && item.label === "Search" ? "text-foreground lg:bg-muted/80" : "lg:hover:bg-muted/80"}`}
-              >
-                {content}
-              </button>
-            );
-          }
 
           return (
             <Link
               key={item.label}
               href={item.href}
-              onClick={() => setShowSearch(false)}
               className={`flex flex-col lg:flex-row items-center justify-center lg:justify-start gap-1 lg:gap-4 p-2 lg:p-3 rounded-xl transition-colors group relative ${
-                isActive && !showSearch
+                isActive
                   ? "text-foreground lg:font-bold" 
                   : "text-foreground/80 hover:text-foreground lg:hover:bg-muted/80"
               }`}
@@ -124,46 +108,6 @@ export function DashboardSidebar() {
           </Avatar>
         </button>
       </nav>
-
-      {/* Slide-out Search Pane */}
-      {showSearch && (
-        <>
-          {/* Overlay to catch clicks outside */}
-          <div 
-            className="fixed inset-0 z-20 bg-black/20 lg:bg-transparent"
-            onClick={() => setShowSearch(false)}
-          />
-          <div className="absolute bottom-16 lg:bottom-auto lg:top-0 left-0 lg:left-full h-[50vh] lg:h-screen w-full lg:w-80 bg-background border-t lg:border-t-0 lg:border-r border-border z-30 shadow-2xl animate-in slide-in-from-bottom-8 lg:slide-in-from-left-8 fade-in-20">
-            <div className="p-6 h-full flex flex-col">
-              <div className="flex items-center gap-3 mb-4 lg:mb-6">
-                <button 
-                  onClick={() => setShowSearch(false)}
-                  className="p-2 -ml-2 rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-                >
-                  <ArrowLeft className="h-5 w-5" />
-                </button>
-                <h2 className="text-xl lg:text-2xl font-bold">Search</h2>
-              </div>
-            <div className="space-y-4">
-              <input 
-                type="text" 
-                placeholder="Search skills, people, college..." 
-                className="w-full bg-muted border-none rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-              />
-              <div className="h-px bg-border my-4" />
-              <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-muted-foreground">Recent Filters</h3>
-                <div className="flex flex-wrap gap-2">
-                  <span className="px-3 py-1 bg-muted rounded-full text-xs font-medium cursor-pointer hover:bg-muted/80">#Python</span>
-                  <span className="px-3 py-1 bg-muted rounded-full text-xs font-medium cursor-pointer hover:bg-muted/80">MIT</span>
-                  <span className="px-3 py-1 bg-muted rounded-full text-xs font-medium cursor-pointer hover:bg-muted/80">Top Rated</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        </>
-      )}
 
       {/* Profile Management Section (Desktop) / Mobile Menu Overlay */}
       <div className={`relative lg:p-4 lg:mt-auto lg:border-t lg:border-border/50 ${showProfileMenu ? 'block' : 'hidden lg:block'}`}>

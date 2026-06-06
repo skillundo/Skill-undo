@@ -9,10 +9,10 @@ export default function DashboardLayout({
 }) {
   return (
     <DashboardProvider>
-      <div className="flex min-h-screen bg-black/[0.01] dark:bg-white/[0.01]">
+      <div className="flex min-h-screen w-full bg-black/[0.01] dark:bg-white/[0.01]">
         <DashboardMobileHeader />
         <DashboardSidebar />
-        <div className="flex-1 min-w-0 pt-14 pb-20 lg:ml-64 lg:pt-0 lg:pb-0">
+        <div className="flex-1 min-w-0 pt-14 pb-20 lg:pl-64 lg:pt-0 lg:pb-0">
           {children}
         </div>
       </div>
