@@ -5,7 +5,6 @@ import { User, Star, Heart, BadgeCheck } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { UserProfile } from "@/lib/mock-data";
-import { UserProfile } from "@/lib/mock-data";
 
 export interface FeedGig {
   id: string;
