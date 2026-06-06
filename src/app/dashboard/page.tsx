@@ -27,7 +27,7 @@ export default function DashboardFeed() {
     const fetchSkills = async () => {
       const { data, error } = await supabase
         .from('skills')
-        .select('*, users(full_name, avatar_url, seller_level)')
+        .select('*, users!fk_skills_user_id(username, avatar_url)')
         .eq('status', 'active')
         .order('created_at', { ascending: false })
         .limit(20);
@@ -42,8 +42,8 @@ export default function DashboardFeed() {
           id: skill.id,
           user: {
             id: skill.user_id,
-            username: skill.users?.full_name || 'Unknown',
-            displayName: skill.users?.full_name || 'Unknown',
+            username: skill.users?.username || 'Unknown',
+            displayName: skill.users?.username || 'Unknown',
             avatarUrl: skill.users?.avatar_url || '',
             skills: skill.tags || [],
             rating: 0,
