@@ -168,18 +168,24 @@ export function DashboardSidebar() {
       {/* Profile Management Section (Desktop) / Mobile Menu Overlay */}
       <div className={`relative lg:p-4 lg:mt-auto lg:border-t lg:border-border/50 ${showProfileMenu ? 'block' : 'hidden lg:block'}`}>
         {showProfileMenu && (
-          <div className="absolute bottom-full right-4 lg:right-auto lg:left-4 mb-4 lg:mb-2 w-56 bg-card border border-border rounded-xl shadow-lg p-2 z-50 animate-in slide-in-from-bottom-2 fade-in-20">
-            <Link href="/dashboard/profile" className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/80 text-sm font-medium transition-colors">
-              <User className="h-4 w-4" /> View Profile
-            </Link>
-            <Link href="/profile" className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/80 text-sm font-medium transition-colors">
-              <Settings className="h-4 w-4" /> Edit Profile
-            </Link>
-            <div className="h-px bg-border my-1" />
-            <button onClick={handleLogout} className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-destructive/10 text-destructive text-sm font-medium transition-colors">
-              <LogOut className="h-4 w-4" /> Logout
-            </button>
-          </div>
+          <>
+            <div 
+              className="fixed inset-0 z-40" 
+              onClick={() => setShowProfileMenu(false)}
+            />
+            <div className="absolute bottom-full right-4 lg:right-auto lg:left-4 mb-4 lg:mb-2 w-56 bg-card border border-border rounded-xl shadow-lg p-2 z-50 animate-in slide-in-from-bottom-2 fade-in-20">
+              <Link href="/dashboard/profile" className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/80 text-sm font-medium transition-colors">
+                <User className="h-4 w-4" /> View Profile
+              </Link>
+              <Link href="/profile" className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/80 text-sm font-medium transition-colors">
+                <Settings className="h-4 w-4" /> Edit Profile
+              </Link>
+              <div className="h-px bg-border my-1" />
+              <button onClick={handleLogout} className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-destructive/10 text-destructive text-sm font-medium transition-colors">
+                <LogOut className="h-4 w-4" /> Logout
+              </button>
+            </div>
+          </>
         )}
         
         {/* Desktop Profile Button */}

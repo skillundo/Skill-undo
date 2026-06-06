@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { AuthUser, auth } from "@/lib/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { supabase } from "@/lib/supabase";
+import { syncUserToSupabase } from "@/lib/syncUser";
 import { useRouter, usePathname } from "next/navigation";
 
 interface AuthContextType {
@@ -59,6 +60,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           photoURL: currentUser.photoURL,
         };
         setUserState(authUser);
+        
+        // Ensure user is synced to Supabase (vital for users logged in before Supabase was added)
+        syncUserToSupabase(authUser).catch(console.error);
         
         const localComplete = localStorage.getItem(`profile_complete_${currentUser.uid}`) === "true";
         if (localComplete) {

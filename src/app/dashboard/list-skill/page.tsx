@@ -49,6 +49,8 @@ export default function ListASkill() {
   const [premiumPrice, setPremiumPrice] = useState("");
   const [premiumDesc, setPremiumDesc] = useState("");
 
+  const [offerThreeTiers, setOfferThreeTiers] = useState(false);
+
   const [delivery, setDelivery] = useState("3 Days");
   const [revisions, setRevisions] = useState("3");
 
@@ -104,6 +106,22 @@ export default function ListASkill() {
   const hasPrice = Number(basicPrice) > 0;
   const hasImage = images.length > 0;
   const isReady = hasTitle && hasCategory && hasDesc && hasPrice && hasImage;
+
+  const steps = [
+    { id: 1, label: "Overview", completed: hasTitle && hasCategory && hasDesc, target: "section-overview" },
+    { id: 2, label: "Pricing & Scope", completed: hasPrice, target: "section-pricing" },
+    { id: 3, label: "Gallery", completed: hasImage, target: "section-gallery" },
+    { id: 4, label: "Publish", completed: isReady, target: "section-publish" },
+  ];
+
+  const activeStepId = steps.find(s => !s.completed)?.id || 4;
+
+  const scrollToSection = (targetId: string) => {
+    const el = document.getElementById(targetId);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   const handlePublish = async () => {
     if (!isReady) {
@@ -181,8 +199,14 @@ export default function ListASkill() {
 
       router.push("/dashboard/my-skills");
     } catch (err: any) {
-      console.error("Publish error:", err);
-      setPublishError(err.message || "An error occurred while publishing.");
+      console.error("Publish error:", JSON.stringify(err, null, 2));
+      let errorMsg = "An error occurred while publishing.";
+      if (err?.message) {
+        errorMsg = err.message;
+      } else if (typeof err === 'object' && Object.keys(err).length > 0) {
+        errorMsg = JSON.stringify(err);
+      }
+      setPublishError(errorMsg);
     } finally {
       setIsPublishing(false);
     }
@@ -197,33 +221,35 @@ export default function ListASkill() {
         </Link>
         <div className="flex-1 flex items-center justify-center pl-8 md:pl-0">
           <div className="flex items-center gap-2 md:gap-4 overflow-x-auto no-scrollbar max-w-full">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-green-500 text-white flex items-center justify-center shrink-0">
-              <Check className="h-4 w-4" />
-            </div>
-            <span className="text-sm font-medium hidden sm:block text-foreground">Overview</span>
-          </div>
-          <div className="h-px w-8 sm:w-16 bg-border" />
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm shrink-0">
-              2
-            </div>
-            <span className="text-sm font-medium hidden sm:block text-primary">Pricing & Scope</span>
-          </div>
-          <div className="h-px w-8 sm:w-16 bg-border" />
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full border border-border text-muted-foreground flex items-center justify-center font-bold text-sm shrink-0">
-              3
-            </div>
-            <span className="text-sm font-medium hidden sm:block text-muted-foreground">Gallery</span>
-          </div>
-          <div className="h-px w-8 sm:w-16 bg-border" />
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full border border-border text-muted-foreground flex items-center justify-center font-bold text-sm shrink-0">
-              4
-            </div>
-            <span className="text-sm font-medium hidden sm:block text-muted-foreground">Publish</span>
-          </div>
+            {steps.map((step, index) => {
+              const isActive = activeStepId === step.id;
+              return (
+                <div key={step.id} className="flex items-center gap-2 md:gap-4 shrink-0">
+                  <button 
+                    onClick={() => scrollToSection(step.target)}
+                    className="flex items-center gap-2 group transition-opacity hover:opacity-80"
+                  >
+                    <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 transition-colors ${
+                      step.completed 
+                        ? 'bg-green-500 text-white' 
+                        : isActive 
+                          ? 'bg-primary text-primary-foreground font-bold text-sm' 
+                          : 'border border-border text-muted-foreground font-bold text-sm'
+                    }`}>
+                      {step.completed ? <Check className="h-4 w-4" /> : step.id}
+                    </div>
+                    <span className={`text-sm font-medium hidden sm:block transition-colors ${
+                      step.completed || isActive ? (isActive ? 'text-primary' : 'text-foreground') : 'text-muted-foreground'
+                    }`}>
+                      {step.label}
+                    </span>
+                  </button>
+                  {index < steps.length - 1 && (
+                    <div className="h-px w-8 sm:w-16 bg-border" />
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -234,7 +260,7 @@ export default function ListASkill() {
           <div className="max-w-[760px] mx-auto space-y-12">
             
             {/* Section 1 */}
-            <section className="space-y-6">
+            <section id="section-overview" className="space-y-6">
               <div className="flex items-center gap-4">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground shrink-0">1. Skill Overview</h3>
                 <div className="h-px bg-border flex-1" />
@@ -338,7 +364,7 @@ export default function ListASkill() {
             </section>
 
             {/* Section 3 */}
-            <section className="space-y-6">
+            <section id="section-gallery" className="space-y-6">
               <div className="flex items-center gap-4">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground shrink-0">3. Portfolio Images</h3>
                 <div className="h-px bg-border flex-1" />
@@ -390,32 +416,50 @@ export default function ListASkill() {
             </section>
 
             {/* Section 4 */}
-            <section className="space-y-6">
-              <div className="flex items-center gap-4">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground shrink-0">4. Pricing Tiers</h3>
-                <div className="h-px bg-border flex-1" />
+            <section id="section-pricing" className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground shrink-0">4. Pricing & Scope</h3>
+                  <div className="h-px bg-border flex-1 sm:w-16 sm:flex-none" />
+                </div>
+                <div className="flex items-center gap-3 bg-muted/30 px-3 py-1.5 rounded-lg border border-border">
+                  <span className="text-sm font-semibold text-foreground">Offer 3 Packages</span>
+                  <button 
+                    onClick={() => setOfferThreeTiers(!offerThreeTiers)}
+                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                      offerThreeTiers ? 'bg-primary' : 'bg-muted-foreground/30'
+                    }`}
+                  >
+                    <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                      offerThreeTiers ? 'translate-x-5' : 'translate-x-1'
+                    }`} />
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-4">
-                {/* Basic */}
-                <div className="bg-card border border-border rounded-xl p-5">
+                {/* Basic / Single Tier */}
+                <div className={`bg-card border ${offerThreeTiers ? 'border-border' : 'border-primary/50 border-2'} rounded-xl p-5`}>
                   <div className="flex items-center gap-3 mb-4">
-                    <span className="px-2.5 py-1 bg-muted text-muted-foreground text-xs font-bold uppercase tracking-wider rounded-md">Basic</span>
+                    <span className="px-2.5 py-1 bg-muted text-muted-foreground text-xs font-bold uppercase tracking-wider rounded-md">
+                      {offerThreeTiers ? "Basic" : "Price"}
+                    </span>
                     <div className="flex-1" />
                     <div className="relative">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-semibold">₹</span>
-                      <input 
-                        type="number"
-                        placeholder="500"
-                        value={basicPrice}
-                        onChange={(e) => setBasicPrice(e.target.value)}
-                        className="w-32 bg-background border border-border rounded-lg pl-7 pr-3 py-2 text-sm focus:outline-none focus:border-primary"
-                      />
+                        <input 
+                          type="number"
+                          min="0"
+                          placeholder={offerThreeTiers ? "500" : "1500"}
+                          value={basicPrice}
+                          onChange={(e) => setBasicPrice(e.target.value)}
+                          className="w-32 bg-background border border-border rounded-lg pl-7 pr-3 py-2 text-sm focus:outline-none focus:border-primary"
+                        />
                     </div>
                   </div>
                   <input 
                     type="text" 
-                    placeholder="Describe what's included in basic tier..."
+                    placeholder={offerThreeTiers ? "Describe what's included in basic tier..." : "Describe what you will deliver for this price..."}
                     value={basicDesc}
                     onChange={(e) => setBasicDesc(e.target.value)}
                     className="w-full bg-transparent border-b border-border/50 pb-2 text-sm focus:outline-none focus:border-primary transition-colors"
@@ -423,57 +467,63 @@ export default function ListASkill() {
                 </div>
 
                 {/* Standard */}
-                <div className="bg-card border-2 border-primary/50 rounded-xl p-5 relative overflow-hidden">
-                  <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-bl-lg">
-                    ✦ Most Popular
-                  </div>
-                  <div className="flex items-center gap-3 mb-4 mt-2">
-                    <span className="px-2.5 py-1 bg-primary/20 text-primary text-xs font-bold uppercase tracking-wider rounded-md">Standard</span>
-                    <div className="flex-1" />
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-semibold">₹</span>
-                      <input 
-                        type="number"
-                        placeholder="1500"
-                        value={standardPrice}
-                        onChange={(e) => setStandardPrice(e.target.value)}
-                        className="w-32 bg-background border border-border rounded-lg pl-7 pr-3 py-2 text-sm focus:outline-none focus:border-primary"
-                      />
+                {offerThreeTiers && (
+                  <div className="bg-card border-2 border-primary/50 rounded-xl p-5 relative overflow-hidden animate-in fade-in slide-in-from-top-2">
+                    <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-bl-lg">
+                      ✦ Most Popular
                     </div>
+                    <div className="flex items-center gap-3 mb-4 mt-2">
+                      <span className="px-2.5 py-1 bg-primary/20 text-primary text-xs font-bold uppercase tracking-wider rounded-md">Standard</span>
+                      <div className="flex-1" />
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-semibold">₹</span>
+                          <input 
+                            type="number"
+                            min="0"
+                            placeholder="1500"
+                            value={standardPrice}
+                            onChange={(e) => setStandardPrice(e.target.value)}
+                            className="w-32 bg-background border border-border rounded-lg pl-7 pr-3 py-2 text-sm focus:outline-none focus:border-primary"
+                          />
+                      </div>
+                    </div>
+                    <input 
+                      type="text" 
+                      placeholder="Describe what's included in standard tier..."
+                      value={standardDesc}
+                      onChange={(e) => setStandardDesc(e.target.value)}
+                      className="w-full bg-transparent border-b border-border/50 pb-2 text-sm focus:outline-none focus:border-primary transition-colors"
+                    />
                   </div>
-                  <input 
-                    type="text" 
-                    placeholder="Describe what's included in standard tier..."
-                    value={standardDesc}
-                    onChange={(e) => setStandardDesc(e.target.value)}
-                    className="w-full bg-transparent border-b border-border/50 pb-2 text-sm focus:outline-none focus:border-primary transition-colors"
-                  />
-                </div>
+                )}
 
                 {/* Premium */}
-                <div className="bg-card border border-border rounded-xl p-5">
-                  <div className="flex items-center gap-3 mb-4">
-                    <span className="px-2.5 py-1 bg-amber-500/20 text-amber-500 text-xs font-bold uppercase tracking-wider rounded-md">Premium</span>
-                    <div className="flex-1" />
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-semibold">₹</span>
-                      <input 
-                        type="number"
-                        placeholder="3500"
-                        value={premiumPrice}
-                        onChange={(e) => setPremiumPrice(e.target.value)}
-                        className="w-32 bg-background border border-border rounded-lg pl-7 pr-3 py-2 text-sm focus:outline-none focus:border-primary"
-                      />
+                {offerThreeTiers && (
+                  <div className="bg-card border border-border rounded-xl p-5 animate-in fade-in slide-in-from-top-2 delay-75">
+                    <div className="flex items-center gap-3 mb-4">
+                      <span className="px-2.5 py-1 bg-amber-500/20 text-amber-500 text-xs font-bold uppercase tracking-wider rounded-md">Premium</span>
+                      <div className="flex-1" />
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-semibold">₹</span>
+                          <input 
+                            type="number"
+                            min="0"
+                            placeholder="3500"
+                            value={premiumPrice}
+                            onChange={(e) => setPremiumPrice(e.target.value)}
+                            className="w-32 bg-background border border-border rounded-lg pl-7 pr-3 py-2 text-sm focus:outline-none focus:border-primary"
+                          />
+                      </div>
                     </div>
+                    <input 
+                      type="text" 
+                      placeholder="Describe what's included in premium tier..."
+                      value={premiumDesc}
+                      onChange={(e) => setPremiumDesc(e.target.value)}
+                      className="w-full bg-transparent border-b border-border/50 pb-2 text-sm focus:outline-none focus:border-primary transition-colors"
+                    />
                   </div>
-                  <input 
-                    type="text" 
-                    placeholder="Describe what's included in premium tier..."
-                    value={premiumDesc}
-                    onChange={(e) => setPremiumDesc(e.target.value)}
-                    className="w-full bg-transparent border-b border-border/50 pb-2 text-sm focus:outline-none focus:border-primary transition-colors"
-                  />
-                </div>
+                )}
               </div>
             </section>
 
@@ -693,26 +743,31 @@ export default function ListASkill() {
       </div>
 
       {/* Bottom Action Bar */}
-      <div className="fixed bottom-0 lg:left-64 right-0 z-30 bg-background/95 backdrop-blur-md border-t border-border p-4 flex items-center justify-between">
+      <div id="section-publish" className="fixed z-30 bg-background/95 backdrop-blur-md border-t border-border p-3 sm:p-4 flex items-center justify-between gap-2 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)] bottom-16 left-0 right-0 lg:bottom-0 lg:left-64 lg:right-80">
         <button 
           onClick={() => console.log("Draft saved")}
-          className="px-6 py-2.5 rounded-lg text-sm font-semibold text-foreground hover:bg-muted transition-colors"
+          className="px-3 sm:px-6 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold text-foreground hover:bg-muted transition-colors whitespace-nowrap"
         >
-          Save as draft
+          <span className="hidden sm:inline">Save as draft</span>
+          <span className="sm:hidden">Draft</span>
         </button>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <Link 
             href="/dashboard"
-            className="px-6 py-2.5 rounded-lg text-sm font-semibold text-foreground hover:bg-muted transition-colors"
+            className="px-3 sm:px-6 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-semibold text-foreground hover:bg-muted transition-colors whitespace-nowrap"
           >
-            &larr; Back
+            &larr; <span className="hidden sm:inline">Back</span>
           </Link>
           <button 
             onClick={handlePublish}
             disabled={isPublishing}
-            className="px-6 py-2.5 rounded-lg text-sm font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap flex items-center gap-1 sm:gap-2"
           >
-            {isPublishing ? "Publishing..." : "Publish Skill \u2192"}
+            {isPublishing ? (
+              "Publishing..."
+            ) : (
+              <><span>Publish</span> <span className="hidden sm:inline">Skill</span> &rarr;</>
+            )}
           </button>
         </div>
       </div>
