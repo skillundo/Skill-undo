@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Search, Compass, MessageSquare, PlusSquare, MoreHorizontal, LogOut, User, Settings } from "lucide-react";
+import { Search, Compass, MessageSquare, PlusSquare, MoreHorizontal, LogOut, User, Settings, LayoutDashboard, Layers, ArrowLeft } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { auth } from "@/lib/firebase";
@@ -23,9 +23,11 @@ export function DashboardSidebar() {
   };
 
   const navItems = [
+    { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard/dashboard" },
     { icon: Search, label: "Search", href: "#search", isAction: true },
     { icon: Compass, label: "Explore", href: "/dashboard" },
     { icon: MessageSquare, label: "Messages", href: "/dashboard/messages", badge: 2 },
+    { icon: Layers, label: "My Skills", href: "/dashboard/my-skills" },
   ];
 
   return (
@@ -41,7 +43,7 @@ export function DashboardSidebar() {
       {/* Prominent CTA (Hidden on Mobile) */}
       <div className="hidden lg:block px-4 mb-6">
         <Link 
-          href="/workspace/new" 
+          href="/dashboard/list-skill" 
           className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground p-3 rounded-xl hover:bg-primary/90 transition-all shadow-md hover:shadow-lg group"
         >
           <PlusSquare className="h-5 w-5 group-hover:scale-110 transition-transform" />
@@ -125,9 +127,23 @@ export function DashboardSidebar() {
 
       {/* Slide-out Search Pane */}
       {showSearch && (
-        <div className="absolute bottom-16 lg:bottom-auto lg:top-0 left-0 lg:left-full h-[50vh] lg:h-screen w-full lg:w-80 bg-background border-t lg:border-t-0 lg:border-r border-border z-30 shadow-2xl animate-in slide-in-from-bottom-8 lg:slide-in-from-left-8 fade-in-20">
-          <div className="p-6 h-full flex flex-col">
-            <h2 className="text-xl lg:text-2xl font-bold mb-4 lg:mb-6">Search</h2>
+        <>
+          {/* Overlay to catch clicks outside */}
+          <div 
+            className="fixed inset-0 z-20 bg-black/20 lg:bg-transparent"
+            onClick={() => setShowSearch(false)}
+          />
+          <div className="absolute bottom-16 lg:bottom-auto lg:top-0 left-0 lg:left-full h-[50vh] lg:h-screen w-full lg:w-80 bg-background border-t lg:border-t-0 lg:border-r border-border z-30 shadow-2xl animate-in slide-in-from-bottom-8 lg:slide-in-from-left-8 fade-in-20">
+            <div className="p-6 h-full flex flex-col">
+              <div className="flex items-center gap-3 mb-4 lg:mb-6">
+                <button 
+                  onClick={() => setShowSearch(false)}
+                  className="p-2 -ml-2 rounded-full hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </button>
+                <h2 className="text-xl lg:text-2xl font-bold">Search</h2>
+              </div>
             <div className="space-y-4">
               <input 
                 type="text" 
@@ -146,6 +162,7 @@ export function DashboardSidebar() {
             </div>
           </div>
         </div>
+        </>
       )}
 
       {/* Profile Management Section (Desktop) / Mobile Menu Overlay */}
