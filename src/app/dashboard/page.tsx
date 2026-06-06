@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { PortfolioPost, FeedGig } from "@/components/feed/PortfolioPost";
 import { SuggestedSellers } from "@/components/feed/SuggestedSellers";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { UserProfile } from "@/lib/mock-data"; // Just for type if needed later, but actually we only need it if we define a state
+import { UserProfile, MOCK_USERS } from "@/lib/mock-data";
 
 const CATEGORIES = {
   Engineering: ["Next.js", "React", "TypeScript", "Node.js", "PostgreSQL", "API"],
@@ -21,7 +21,62 @@ export default function DashboardFeed() {
 
   // Placeholder for real feed gigs fetching
   const feedPosts: FeedGig[] = useMemo(() => {
-    return [];
+    return [
+      {
+        id: "g1",
+        user: MOCK_USERS[0],
+        imageUrl: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&q=80&w=800",
+        title: "Full-stack Next.js web application",
+        price: 5000,
+        expertise: "Expert Level",
+        category: "Engineering",
+      },
+      {
+        id: "g2",
+        user: MOCK_USERS[1],
+        imageUrl: "https://images.unsplash.com/photo-1561070791-2526d30994b5?auto=format&fit=crop&q=80&w=800",
+        title: "Modern UI/UX design in Figma",
+        price: 3000,
+        expertise: "Expert Level",
+        category: "Design",
+      },
+      {
+        id: "g3",
+        user: MOCK_USERS[2],
+        imageUrl: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&q=80&w=800",
+        title: "Robust Node.js & PostgreSQL backend",
+        price: 4500,
+        expertise: "Intermediate Level",
+        category: "Engineering",
+      },
+      {
+        id: "g4",
+        user: MOCK_USERS[3],
+        imageUrl: "https://images.unsplash.com/photo-1455390582262-044cdead27d8?auto=format&fit=crop&q=80&w=800",
+        title: "SEO optimized content writing",
+        price: 1500,
+        expertise: "Expert Level",
+        category: "Writing",
+      },
+      {
+        id: "g5",
+        user: MOCK_USERS[1],
+        imageUrl: "https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?auto=format&fit=crop&q=80&w=800",
+        title: "Brand identity and logo design",
+        price: 2500,
+        expertise: "Expert Level",
+        category: "Design",
+      },
+      {
+        id: "g6",
+        user: MOCK_USERS[0],
+        imageUrl: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=800",
+        title: "React components and frontend logic",
+        price: 2000,
+        expertise: "Expert Level",
+        category: "Engineering",
+      }
+    ];
   }, [effectiveUid]);
 
 
